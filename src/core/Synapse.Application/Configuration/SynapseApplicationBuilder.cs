@@ -107,6 +107,7 @@ namespace Synapse.Application.Configuration
             });
             this.Services.AddGenericQueryHandlers();
             this.Services.AddGenericCommandHandlers();
+            this.Services.AddTelemetry();
             this.Services.AddMapper(this.MapperAssemblies.ToArray());
             this.Services.AddSingleton<IJsonPatchMetadataProvider, JsonPatchMetadataProvider>();
             this.Services.AddScoped<IObjectAdapter, AggregateObjectAdapter>();

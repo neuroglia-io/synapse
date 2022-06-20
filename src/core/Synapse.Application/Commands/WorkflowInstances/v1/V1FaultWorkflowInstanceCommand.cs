@@ -54,7 +54,7 @@ namespace Synapse.Application.Commands.WorkflowInstances
         /// <summary>
         /// Gets the <see cref="Error"/> that caused the <see cref="V1WorkflowInstance"/> to fault
         /// </summary>
-        public virtual Neuroglia.Error Error { get; protected set; }
+        public virtual Error Error { get; protected set; }
 
     }
 
@@ -87,6 +87,9 @@ namespace Synapse.Application.Commands.WorkflowInstances
             workflowInstance.Fault(command.Error);
             workflowInstance = await this.WorkflowInstances.UpdateAsync(workflowInstance, cancellationToken);
             await this.WorkflowInstances.SaveChangesAsync(cancellationToken);
+            var tags = Telemetry.Metrics.GetTagsFor(workflowInstance);
+            Telemetry.Metrics.Histograms.WorkflowInstanceTime.Record(workflowInstance.Duration!.Value.TotalMilliseconds, tags);
+            Telemetry.Metrics.Counters.FaultedWorkflowInstances.Add(1, tags);
             return this.Ok(this.Mapper.Map<Integration.Models.V1WorkflowInstance>(workflowInstance));
         }
 

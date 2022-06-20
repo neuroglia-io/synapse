@@ -105,6 +105,13 @@ namespace Synapse.Domain.Models
         public virtual string? ParentId { get; protected set; }
 
         /// <summary>
+        /// Gets the workflow instance's duration
+        /// </summary>
+        [Newtonsoft.Json.JsonIgnore]
+        [System.Text.Json.Serialization.JsonIgnore]
+        public virtual TimeSpan? Duration => this.StartedAt.HasValue && this.ExecutedAt.HasValue ? this.ExecutedAt.Value.Subtract(this.StartedAt.Value) : null;
+
+        /// <summary>
         /// Starts or resumes the <see cref="V1WorkflowActivity"/>
         /// </summary>
         public virtual void StartOrResume()

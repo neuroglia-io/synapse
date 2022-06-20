@@ -120,6 +120,7 @@ namespace Synapse.Application.Commands.WorkflowActivities
             }
             var activity = await this.WorkflowActivities.AddAsync(new(workflowInstance, command.Type, command.Input, command.Metadata, parent), cancellationToken);
             await this.WorkflowActivities.SaveChangesAsync(cancellationToken);
+            Telemetry.Metrics.Counters.WorkflowActivities.Add(1, Telemetry.Metrics.GetTagsFor(activity));
             return this.Ok(this.Mapper.Map<Integration.Models.V1WorkflowActivity>(activity));
         }
 

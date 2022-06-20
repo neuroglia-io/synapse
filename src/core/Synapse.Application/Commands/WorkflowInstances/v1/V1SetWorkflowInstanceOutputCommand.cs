@@ -86,6 +86,9 @@ namespace Synapse.Application.Commands.WorkflowInstances
             workflowInstance.MarkAsCompleted(command.Output);
             workflowInstance = await this.WorkflowInstances.UpdateAsync(workflowInstance, cancellationToken);
             await this.WorkflowInstances.SaveChangesAsync(cancellationToken);
+            var tags = Telemetry.Metrics.GetTagsFor(workflowInstance);
+            Telemetry.Metrics.Histograms.WorkflowInstanceTime.Record(workflowInstance.Duration!.Value.TotalMilliseconds, tags);
+            Telemetry.Metrics.Counters.CompletedWorkflowInstances.Add(1, tags);
             return this.Ok(this.Mapper.Map<Integration.Models.V1WorkflowInstance>(workflowInstance));
         }
 

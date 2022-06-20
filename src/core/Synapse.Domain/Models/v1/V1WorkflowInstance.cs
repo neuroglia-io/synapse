@@ -155,6 +155,13 @@ namespace Synapse.Domain.Models
         public virtual Neuroglia.Error? Error { get; protected set; }
 
         /// <summary>
+        /// Gets the workflow instance's duration
+        /// </summary>
+        [Newtonsoft.Json.JsonIgnore]
+        [System.Text.Json.Serialization.JsonIgnore]
+        public virtual TimeSpan? Duration => this.ExecutedAt.HasValue && this.StartedAt.HasValue ? this.ExecutedAt.Value.Subtract(this.StartedAt.Value) : null;
+
+        /// <summary>
         /// Gets the <see cref="V1WorkflowInstance"/>'s output
         /// </summary>
         public virtual object? Output { get; protected set; }
@@ -393,6 +400,7 @@ namespace Synapse.Domain.Models
         {
             this.LastModified = e.CreatedAt;
             this.Status = V1WorkflowInstanceStatus.Running;
+            this.StartedAt = e.CreatedAt;
         }
 
         /// <summary>

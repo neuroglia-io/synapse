@@ -33,7 +33,12 @@
 	<PackageReference Include="Neuroglia.AspNetCore.JsonPatch" Version="2.0.1.63" />
 	<PackageReference Include="Neuroglia.Data.DistributedCache" Version="2.0.1.63" />
 	<PackageReference Include="Neuroglia.Data.EventSourcing" Version="2.0.1.63" />
+	<PackageReference Include="Neuroglia.Mediation.Extensions.OpenTelemetry" Version="2.0.1.65" />
 	<PackageReference Include="Neuroglia.Mediation.FluentValidation" Version="2.0.1.63" />
+	<PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.3.0" />
+	<PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.0.0-rc9.3" />
+	<PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.0.0-rc9.3" />
+	<PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.0.0-rc9.3" />
 	<PackageReference Include="System.Linq.Async" Version="6.0.1" />
   </ItemGroup>
 

@@ -85,6 +85,9 @@ namespace Synapse.Application.Commands.WorkflowActivities
             activity.SetOutput(command.Output);
             activity = await this.Activities.UpdateAsync(activity, cancellationToken);
             await this.Activities.SaveChangesAsync(cancellationToken);
+            var tags = Telemetry.Metrics.GetTagsFor(activity);
+            Telemetry.Metrics.Histograms.WorkflowActivityTime.Record(activity.Duration!.Value.TotalMilliseconds, tags);
+            Telemetry.Metrics.Counters.CompletedWorkflowActivities.Add(1, tags);
             return this.Ok(this.Mapper.Map<Integration.Models.V1WorkflowActivity>(activity));
         }
 

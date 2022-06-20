@@ -190,6 +190,7 @@ namespace Synapse.Application.Commands.WorkflowInstances
             await this.Workflows.SaveChangesAsync(cancellationToken);
             if (command.AutoStart)
                 await this.Mediator.ExecuteAndUnwrapAsync(new V1StartWorkflowInstanceCommand(workflowInstance.Id), cancellationToken);
+            Telemetry.Metrics.Counters.WorkflowInstances.Add(1, Telemetry.Metrics.GetTagsFor(workflowInstance));
             return this.Ok(this.Mapper.Map<Integration.Models.V1WorkflowInstance>(workflowInstance));
         }
 

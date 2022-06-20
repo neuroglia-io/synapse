@@ -160,6 +160,7 @@ namespace Synapse.Application.Commands.Workflows
             {
                 await this.Mediator.ExecuteAndUnwrapAsync(new V1ScheduleWorkflowCommand(workflow.Id, false), cancellationToken);
             }
+            Telemetry.Metrics.Counters.Workflows.Add(1, Telemetry.Metrics.GetTagsFor(workflow));
             return this.Ok(this.Mapper.Map<Integration.Models.V1Workflow>(workflow));
         }
 

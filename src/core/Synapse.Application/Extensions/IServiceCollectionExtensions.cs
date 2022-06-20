@@ -16,6 +16,10 @@
  */
 
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using OpenTelemetry.Exporter;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 using Synapse.Application.Commands.Generic;
 using Synapse.Application.Queries.Generic;
 using Synapse.Domain;
@@ -152,6 +156,38 @@ namespace Synapse.Application.Configuration
             {
                 services.AddRepository(entityType, lifetime, modelType);
             }
+            return services;
+        }
+
+        internal static IServiceCollection AddTelemetry(this IServiceCollection services)
+        {
+            services.AddOpenTelemetryMetrics(builder =>
+            {
+                builder.SetResourceBuilder(ResourceBuilder.CreateDefault()
+                   .AddService(serviceName: Telemetry.Service.Name, serviceVersion: Telemetry.Service.Version))
+                   .AddOtlpExporter(opt =>
+                   {
+                       opt.Endpoint = new Uri("http://localhost:4317");
+                       opt.Protocol = OtlpExportProtocol.Grpc;
+                   })
+                   .AddMeter(Telemetry.ActivitySource.Name)
+                   .AddHttpClientInstrumentation()
+                   .AddAspNetCoreInstrumentation();
+            });
+            services.AddOpenTelemetryTracing(builder =>
+            {
+                builder.SetResourceBuilder(ResourceBuilder.CreateDefault()
+                    .AddService(serviceName: Telemetry.Service.Name, serviceVersion: Telemetry.Service.Version))
+                    .AddOtlpExporter(opt =>
+                    {
+                        opt.Endpoint = new Uri("http://localhost:4317");
+                        opt.Protocol = OtlpExportProtocol.Grpc;
+                    })
+                    .AddSource(Telemetry.ActivitySource.Name)
+                    .AddHttpClientInstrumentation()
+                    .AddAspNetCoreInstrumentation()
+                    .AddMediatorInstrumentation();
+            });
             return services;
         }
 
