@@ -23,6 +23,7 @@ namespace Synapse.Dashboard
         where T : StateDefinition, new()
     {
         public string? FromStateName { get; set; }
+
         public T State { get; set; }
 
         public bool Update { get; set; }
@@ -43,8 +44,9 @@ namespace Synapse.Dashboard
             : this(null, null)
         { }
 
-        public StateModel(T? state = null, string? FromStateName = null, bool update = false)
+        public StateModel(WorkflowDefinition? workflowDefinition = null, T? state = null, string? FromStateName = null, bool update = false)
         {
+            this.WorkflowDefinition = workflowDefinition ?? new();
             this.State = state ?? new();
             this.FromStateName = FromStateName;
             this.Update = update;

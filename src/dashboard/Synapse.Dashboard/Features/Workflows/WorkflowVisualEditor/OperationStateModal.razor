@@ -16,7 +16,7 @@
 *@
 @namespace Synapse.Dashboard
 @using Neuroglia.Serialization
-@inherits StateEditorModal<StateModel<InjectStateDefinition>>
+@inherits StateEditorModal<StateModel<OperationStateDefinition>>
 @inject IMonacoEditorHelper MonacoEditorHelper
 @inject IJsonSerializer Serializer
 
@@ -25,7 +25,7 @@
         <div class="modal-dialog modal-dialog-centered @modalSizeClass" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Inject state</h5>
+                    <h5 class="modal-title">Operation state</h5>
                     @if (ShowCloseIcon)
                     {
                         <button type="button" class="close btn" data-dismiss="modal" aria-label="Close" @onclick="HideAsync">
@@ -43,12 +43,19 @@
                             <ValidationMessage For="@(() => model.Name)" class="form-text" />
                         </div>
                         <div class="mb-3">
-                            <InputDynamicObject 
-                                Id="state-data"
-                                Label="Data"  
-                                @bind-Value="model.State.Data" 
-                                ValidationFor="@(() => model.State.Data)"
-                            />
+                            @for(int index = 0, c = model.State.Actions.Count; index < c; index++)
+                            {
+                                ActionDefinition action = model.State.Actions.ElementAt(index);
+                                <div>
+                                    <InputAction 
+                                        Id='@("state-action-" + index)'
+                                        @bind-Value="action"
+                                        ValidationFor="@(() => action)"
+                                    />                                    
+                                    <button @onclick="(async () => await RemoveActionAsync(action))" class="btn btn-outline-dark" type="button">Delete Action</button>
+                                </div>
+                            }
+                            <button @onclick="AddActionAsync" class="btn btn-outline-dark" type="button">Add Action</button>
                         </div>
                         <div class="mb-3">
                             <InputDynamicObject 
@@ -81,6 +88,18 @@
 }
 
 @code {
+    protected async Task AddActionAsync()
+    {
+        this.model.State.Actions.Add(new ());
+        await Task.CompletedTask;
+    }
+
+    protected async Task RemoveActionAsync(ActionDefinition action)
+    {
+        this.model.State.Actions.Remove(action);
+        await Task.CompletedTask;
+    }
+
     protected override async Task OnValidSubmitAsync()
     {
         await base.OnValidSubmitAsync();

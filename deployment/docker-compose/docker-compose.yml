@@ -26,24 +26,24 @@ services:
     volumes:
       - eventstore_data:/var/lib/eventstore
 
-  synapse:
-    image: ghcr.io/serverlessworkflow/synapse:latest
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - SYNAPSE_API_HOSTNAME=synapse
-      - SYNAPSE_PERSISTENCE_WRITEMODEL_DEFAULT_REPOSITORY=EventStore
-      - SYNAPSE_PERSISTENCE_READMODEL_DEFAULT_REPOSITORY=MongoDB
-    ports:
-      - 42286:42286
-      - 41387:41387
-    extra_hosts:
-      - host.docker.internal:host-gateway
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - ./plugins:/app/plugins
-    depends_on:
-      - mongo
-      - eventstore
+  #synapse:
+  #  image: ghcr.io/serverlessworkflow/synapse:latest
+  #  environment:
+  #    - ASPNETCORE_ENVIRONMENT=Development
+  #    - SYNAPSE_API_HOSTNAME=synapse
+  #    - SYNAPSE_PERSISTENCE_WRITEMODEL_DEFAULT_REPOSITORY=EventStore
+  #    - SYNAPSE_PERSISTENCE_READMODEL_DEFAULT_REPOSITORY=MongoDB
+  #  ports:
+  #    - 42286:42286
+  #    - 41387:41387
+  #  extra_hosts:
+  #    - host.docker.internal:host-gateway
+  #  volumes:
+  #    - /var/run/docker.sock:/var/run/docker.sock
+  #    - ./plugins:/app/plugins
+  #  depends_on:
+  #    - mongo
+  #    - eventstore
 
 volumes:
 

@@ -38,7 +38,7 @@
         </div>
         <div>
             <InputJqExpression
-                Id="s@outputId"
+                Id="@outputId"
                 Label="Output data filter"
                 Value="@output"
                 ValueChanged="OnOutputValueChanged"
@@ -69,11 +69,10 @@
     [CascadingParameter] 
     protected EditContext CascadedEditContext  { get; set; } = null!;
 
-    protected bool _hasInitializedParameters;
     protected FieldIdentifier fieldIdentifier;
     protected string fieldCssClasses => "form-control valid " + this.CascadedEditContext ?.FieldCssClass(this.fieldIdentifier) ?? "";
     protected string? inputId => this.Id + "-input";
-    protected string? outputId => this.Id + "-input";
+    protected string? outputId => this.Id + "-output";
     protected string? input = null;
     protected string? output = null;
 
@@ -106,9 +105,6 @@
 
     protected virtual async Task OnValueChanged()
     {
-        Console.WriteLine("changed");
-        Console.WriteLine(this.input);
-        Console.WriteLine(this.output);
         if (string.IsNullOrWhiteSpace(this.input) && string.IsNullOrWhiteSpace(this.output))
         {
             this.Value = null;
@@ -131,7 +127,6 @@
             await this.ValueChanged.InvokeAsync(this.Value);
         }
         this.CascadedEditContext?.NotifyFieldChanged(this.fieldIdentifier);
-        Console.WriteLine(this.Serializer.Serialize(this.Value));
     }
 
 }

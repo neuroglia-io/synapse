@@ -26,7 +26,7 @@
             </svg>
             <span class="btn-label">&nbsp; Inject</span>
         </button>
-        <button class="btn btn-outline-dark" title="Operation state">
+        <button class="btn btn-outline-dark" title="Operation state" @onclick="(async () => await Container.ShowEditor<OperationStateDefinition>(typeof(OperationStateModal), predecessor?.State.Name))">
             <svg width="16" height="16">
                 <use xlink:href="#operation-symbol" />
             </svg>

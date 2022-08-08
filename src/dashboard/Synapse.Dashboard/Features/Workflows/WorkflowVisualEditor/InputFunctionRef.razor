@@ -1,0 +1,82 @@
+﻿@*
+ * Copyright © 2022-Present The Synapse Authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+*@
+@namespace Synapse.Dashboard
+@using System.Linq.Expressions
+@using Neuroglia.Serialization
+
+
+<CascadingValue Value="CascadedEditContext">
+    <h6>FunctionRef</h6>
+    @if (value != null)
+    {
+        <select Id='@refNameId' value="@refName" class="form-control">
+            <option></option>
+            @foreach()
+            {
+                
+            }
+        </select>
+        <div class="mb-3">
+            <InputDynamicObject 
+                Id="@argumentstId"
+                Label="Arguments"
+                @bind-Value="arguments"
+                ValidationFor="@(() => arguments)"
+            />
+        </div>
+    }
+</CascadingValue>
+
+@code {
+    [Parameter] 
+    public FunctionReference? Value { get; set; }
+    protected FunctionReference? value { get; set; }
+    [Parameter] 
+    public EventCallback<FunctionReference?> ValueChanged { get; set; }
+
+    [Parameter]
+    public Expression<Func<FunctionReference?>> ValueExpression { get; set; } = null!;
+    [Parameter, EditorRequired] 
+    public Expression<Func<FunctionReference?>> ValidationFor { get; set; } = default!;
+    [Parameter] 
+    public string? Id { get; set; }
+    [CascadingParameter] 
+    protected EditContext CascadedEditContext  { get; set; } = null!;
+
+    protected FieldIdentifier fieldIdentifier;
+    protected string fieldCssClasses => "form-control valid " + this.CascadedEditContext ?.FieldCssClass(this.fieldIdentifier) ?? "";
+    protected string? refNameId => this.Id + "-ref-name";
+    protected string? argumentstId => this.Id + "-arguments";
+    protected string? refName = null;
+    protected DynamicObject? arguments = null;
+
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (this.Value != this.value)
+        {
+            this.value = this.Value;
+        }
+        await Task.CompletedTask;
+    }
+
+    protected virtual async Task OnValueChanged()
+    {
+        
+        await Task.CompletedTask;
+    }
+}

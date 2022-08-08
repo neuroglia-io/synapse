@@ -1,0 +1,157 @@
+﻿@*
+ * Copyright © 2022-Present The Synapse Authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+*@
+@namespace Synapse.Dashboard
+@using Neuroglia.Serialization
+@using System.Linq.Expressions
+@inject IJsonSerializer Serializer
+
+<CascadingValue Value="CascadedEditContext ">
+    <div id="@Id">
+        @if (!string.IsNullOrWhiteSpace(Label))
+        {
+            <label class="form-label">@Label</label>
+        }
+        <div>
+            <InputJqExpression
+                Id="@fromStateDataId"
+                Label="From state data"
+                Value="@fromStateData"
+                ValueChanged="OnFromStateDataValueChanged"
+                ValueExpression="@(() => fromStateData)"
+                ValidationFor="@(() => fromStateData)"
+                class="@fieldCssClasses" 
+            />
+        </div>
+        <div>
+            <input type="checkbox" value="@useResults" @onchange="OnValueChanged" />
+        </div>
+        @if (useResults) {
+            <div>
+                <InputJqExpression
+                    Id="@resultsId"
+                    Label="Results"
+                    Value="@results"
+                    ValueChanged="OnResultsValueChanged"
+                    ValueExpression="@(() => results)"
+                    ValidationFor="@(() => results)"
+                    class="@fieldCssClasses" 
+                />
+            </div>
+            <div>
+                <InputJqExpression
+                    Id="@toStateDataId"
+                    Label="To state date"
+                    Value="@toStateData"
+                    ValueChanged="OnToStateDataValueChanged"
+                    ValueExpression="@(() => toStateData)"
+                    ValidationFor="@(() => toStateData)"
+                    class="@fieldCssClasses" 
+                />
+            </div>
+        }
+    </div>
+</CascadingValue>
+
+@code {
+
+    [Parameter] 
+    public ActionDataFilterDefinition? Value { get; set; }
+    protected ActionDataFilterDefinition? value { get; set; }
+    [Parameter] 
+    public EventCallback<ActionDataFilterDefinition?> ValueChanged { get; set; }
+
+    [Parameter]
+    public Expression<Func<ActionDataFilterDefinition?>> ValueExpression { get; set; } = null!;
+    [Parameter, EditorRequired] 
+    public Expression<Func<ActionDataFilterDefinition?>> ValidationFor { get; set; } = default!;
+    [Parameter] 
+    public string? Id { get; set; }
+    [Parameter]
+    public string? Label { get; set; }
+    [CascadingParameter] 
+    protected EditContext CascadedEditContext  { get; set; } = null!;
+
+    protected FieldIdentifier fieldIdentifier;
+    protected string fieldCssClasses => "form-control valid " + this.CascadedEditContext ?.FieldCssClass(this.fieldIdentifier) ?? "";
+    protected string? fromStateDataId => this.Id + "-from-state-data";
+    protected string? resultsId => this.Id + "-results";
+    protected string? toStateDataId => this.Id + "-to-state-data";
+    protected string? fromStateData = null;
+    protected string? results = null;
+    protected string? toStateData = null;
+    protected bool useResults = true;
+
+    protected override void OnInitialized()
+    {
+        this.fieldIdentifier = FieldIdentifier.Create(ValueExpression);
+    }
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        if (this.Value != this.value)
+        {
+            this.value = this.Value;
+            this.fromStateData = this.Value?.FromStateData;
+            this.results = this.Value?.Results;
+            this.toStateData = this.Value?.ToStateData;
+            this.useResults = this.Value?.UseResults ?? true;
+        }
+    }
+
+    protected virtual async Task OnFromStateDataValueChanged(string? fromStateData) {
+        this.fromStateData = fromStateData;
+        await this.OnValueChanged();
+    }
+
+    protected virtual async Task OnResultsValueChanged(string? results)
+    {
+        this.results = results;
+        await this.OnValueChanged();
+    }
+
+    protected virtual async Task OnToStateDataValueChanged(string? toStateData)
+    {
+        this.toStateData = toStateData;
+        await this.OnValueChanged();
+    }
+
+    protected virtual async Task OnValueChanged()
+    {
+        var actionDataFilter = new ActionDataFilterDefinition();
+        actionDataFilter.UseResults = this.useResults;
+        if (!string.IsNullOrWhiteSpace(this.fromStateData))
+        {
+            actionDataFilter.FromStateData = this.fromStateData;
+        }
+        if (!string.IsNullOrWhiteSpace(this.results))
+        {
+            actionDataFilter.Results = this.results;
+        }
+        if (!string.IsNullOrWhiteSpace(this.toStateData))
+        {
+            actionDataFilter.ToStateData = this.toStateData;
+        }
+        this.Value = actionDataFilter;
+        if (this.ValueChanged.HasDelegate)
+        {
+            await this.ValueChanged.InvokeAsync(this.Value);
+        }
+        this.CascadedEditContext?.NotifyFieldChanged(this.fieldIdentifier);
+    }
+
+}

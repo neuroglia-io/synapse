@@ -1,0 +1,112 @@
+﻿@*
+ * Copyright © 2022-Present The Synapse Authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+*@
+@namespace Synapse.Dashboard
+@using System.Linq.Expressions
+
+
+<CascadingValue Value="CascadedEditContext">
+    <h6>InputAction @Id</h6>
+    @if (value != null)
+    {
+        <select Id='@(Id + "-type")' value="@ActionType" class="form-control" @onchange="OnActionTypeChangeAsync">
+            <option value="@ActionType.Function">Function</option>
+            <option value="@ActionType.Trigger">Trigger</option>
+            <option value="@ActionType.Subflow">Subflow</option>
+        </select>
+        @switch (ActionType)
+        {
+            case ActionType.Function:
+            {
+        
+                break;
+            }
+            case ActionType.Trigger:
+            {
+           
+        
+                break;     
+            }
+            case ActionType.Subflow:
+            {
+                
+        
+                break;
+            }
+            default:
+            {
+                <div>Unknown action type</div>
+                break;
+            }
+        }
+        <div class="mb-3">
+            <InputActionDataFilter
+                Id='@(Id + "-action-data-filter")'
+                Label="Action data filter"
+                @bind-Value="value.ActionDataFilter"
+                ValidationFor="@(() => value.ActionDataFilter)"
+            />
+        </div>
+    }
+</CascadingValue>
+
+@code {
+    [Parameter] 
+    public ActionDefinition? Value { get; set; }
+    protected ActionDefinition? value { get; set; }
+    [Parameter] 
+    public EventCallback<ActionDefinition?> ValueChanged { get; set; }
+
+    [Parameter]
+    public Expression<Func<ActionDefinition?>> ValueExpression { get; set; } = null!;
+    [Parameter, EditorRequired] 
+    public Expression<Func<ActionDefinition?>> ValidationFor { get; set; } = default!;
+    [Parameter] 
+    public string? Id { get; set; }
+    [CascadingParameter] 
+    protected EditContext CascadedEditContext  { get; set; } = null!;
+
+    public ActionType ActionType { get; set; } = ActionType.Function;
+
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (this.Value != this.value)
+        {
+            this.value = this.Value;
+            if (this.value != null)
+            {
+                try
+                {
+                    this.ActionType = this.value.Type;
+                }
+                catch (Exception ex) { }
+            }
+        }
+        await Task.CompletedTask;
+    }
+
+    protected async Task OnActionTypeChangeAsync()
+    {
+        await this.OnValueChanged();
+    }
+
+    protected virtual async Task OnValueChanged()
+    {
+        
+        await Task.CompletedTask;
+    }
+}

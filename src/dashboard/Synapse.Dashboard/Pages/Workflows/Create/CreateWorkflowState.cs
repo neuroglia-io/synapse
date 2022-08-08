@@ -21,7 +21,7 @@ namespace Synapse.Dashboard.Pages.Workflows.Create.State
     [Feature]
     public record CreateWorkflowState
     {
-        public bool ShowVisualEditor { get; init; } = false;
+        public bool ShowVisualEditor { get; init; } = true;
         public bool CreateDisabled { get; init; } = true;
     }
 }

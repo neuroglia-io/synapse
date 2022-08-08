@@ -141,7 +141,7 @@
         if (this.addStateContextualMenu != null && this.addStateContextualMenu.Active) {
             await this.addStateContextualMenu.HideAsync();
         }
-        var stateModel = new StateModel<T>(model != null ? this.Cloner.Clone(model) : null, fromStateName, update);
+        var stateModel = new StateModel<T>(this.workflowDefinition, model != null ? this.Cloner.Clone(model) : null, fromStateName, update);
         this.stateModalParameters = new Dictionary<string, object>()
         {
             { "Model", stateModel! },
