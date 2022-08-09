@@ -12,7 +12,9 @@
 </CascadingValue>
 @if (stateModalType != null && stateModalParameters != null) {
     <CascadingValue Value="@states">
-        <DynamicStateModal @ref="stateModal" Type="stateModalType" Parameters="stateModalParameters"/>
+        <CascadingValue Value="@functionDefinitions">
+            <DynamicStateModal @ref="stateModal" Type="stateModalType" Parameters="stateModalParameters"/>
+        </CascadingValue>
     </CascadingValue>
 }
 
@@ -43,6 +45,7 @@
 
     protected WorkflowSummaryModel workflowSummary = new WorkflowSummaryModel();
     protected ICollection<StateDefinition> states = new List<StateDefinition>();
+    protected ICollection<FunctionDefinition> functionDefinitions = new List<FunctionDefinition>();
     protected WorkflowSummaryModal workflowSummaryModal = null!;
 
     protected AddStateContextualMenu addStateContextualMenu = null!;
@@ -131,17 +134,17 @@
         string? fromStateName = this.states.Where(state => state.TransitionToStateName == sender.State.Name)
                 .Select(state => state.Name)
                 .FirstOrDefault();
-        await this.ShowEditor(typeof(InjectStateModal), fromStateName, sender.State as InjectStateDefinition, true);
+        await this.ShowEditor(typeof(InjectStateModal), fromStateName, sender.State as InjectStateDefinition);
         this.StateHasChanged();
     }
 
-    public virtual async Task ShowEditor<T>(Type modalType, string? fromStateName = null, T? model = null, bool update = false)
+    public virtual async Task ShowEditor<T>(Type modalType, string? fromStateName = null, T? model = null)
         where T : StateDefinition, new()
     {
         if (this.addStateContextualMenu != null && this.addStateContextualMenu.Active) {
             await this.addStateContextualMenu.HideAsync();
         }
-        var stateModel = new StateModel<T>(this.workflowDefinition, model != null ? this.Cloner.Clone(model) : null, fromStateName, update);
+        var stateModel = new StateModel<T>(model != null ? this.Cloner.Clone(model) : null, fromStateName);
         this.stateModalParameters = new Dictionary<string, object>()
         {
             { "Model", stateModel! },

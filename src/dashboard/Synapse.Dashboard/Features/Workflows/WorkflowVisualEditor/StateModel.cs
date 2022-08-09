@@ -44,12 +44,11 @@ namespace Synapse.Dashboard
             : this(null, null)
         { }
 
-        public StateModel(WorkflowDefinition? workflowDefinition = null, T? state = null, string? FromStateName = null, bool update = false)
+        public StateModel(T? state = null, string? FromStateName = null)
         {
-            this.WorkflowDefinition = workflowDefinition ?? new();
             this.State = state ?? new();
             this.FromStateName = FromStateName;
-            this.Update = update;
+            this.Update = state != null;
         }
     }
 }

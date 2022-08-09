@@ -25,10 +25,14 @@ namespace Synapse.Dashboard
         where T : class, IStateModel, new()
     {
         protected EditContext? editContext;
+
         protected ValidationMessageStore? validationMessages;
 
         [CascadingParameter]
         public ICollection<StateDefinition> States { get; set; } = null!;
+
+        [CascadingParameter]
+        public ICollection<FunctionDefinition> FunctionDefinitions { get; set; } = null!;
 
         protected override async Task OnParametersSetAsync()
         {
@@ -52,6 +56,7 @@ namespace Synapse.Dashboard
                 this.validationMessages = new(editContext);
             }
         }
+        
         protected virtual void OnValidationRequested(object? sender, ValidationRequestedEventArgs args)
         {
             this.validationMessages?.Clear();

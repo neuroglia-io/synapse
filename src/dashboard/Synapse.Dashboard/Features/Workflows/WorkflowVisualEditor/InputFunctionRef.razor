@@ -25,11 +25,12 @@
     {
         <select Id='@refNameId' value="@refName" class="form-control">
             <option></option>
-            @foreach()
+            @foreach(var functionDefinition in FunctionDefinitions)
             {
-                
+                <option value="@functionDefinition.Name">@functionDefinition.Name</option>
             }
         </select>
+        <button>Add Function</button>
         <div class="mb-3">
             <InputDynamicObject 
                 Id="@argumentstId"
@@ -41,8 +42,8 @@
     }
 </CascadingValue>
 
-@code {
-    [Parameter] 
+    @code {
+        [Parameter] 
     public FunctionReference? Value { get; set; }
     protected FunctionReference? value { get; set; }
     [Parameter] 
@@ -56,6 +57,8 @@
     public string? Id { get; set; }
     [CascadingParameter] 
     protected EditContext CascadedEditContext  { get; set; } = null!;
+    [CascadingParameter]
+    protected ICollection<FunctionDefinition> FunctionDefinitions { get; set; } = null!;
 
     protected FieldIdentifier fieldIdentifier;
     protected string fieldCssClasses => "form-control valid " + this.CascadedEditContext ?.FieldCssClass(this.fieldIdentifier) ?? "";
