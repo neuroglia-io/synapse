@@ -347,7 +347,7 @@ namespace Synapse.Worker.Services
                     processor.OfType<V1WorkflowActivityCompletedIntegrationEvent>().SubscribeAsync
                     (
                         async e => await this.OnStateCompletedAsync(stateProcessor, e),
-                        async ex => await this.OnActivityProcessingErrorAsync(stateProcessor, ex),
+                        async ex => await this.OnStateProcessingErrorAsync(stateProcessor, ex),
                         async () => await this.OnActivityProcessingCompletedAsync(stateProcessor)
                     );
                     break;
@@ -444,6 +444,7 @@ namespace Synapse.Worker.Services
             try
             {
                 //todo: publish the event to the server
+                await Task.CompletedTask;
             }
             catch(Exception ex)
             {
@@ -460,6 +461,8 @@ namespace Synapse.Worker.Services
         protected virtual async Task OnStateCompletedAsync(IStateProcessor processor, V1WorkflowActivityCompletedIntegrationEvent e)
         {
             var metadata = new Dictionary<string, string>() { { V1WorkflowActivityMetadata.State, processor.State.Name } };
+            if (processor.Activity.Metadata.TryGetValue(V1WorkflowActivityMetadata.CompensationSource, out var compensationSource))
+                metadata.Add(V1WorkflowActivityMetadata.CompensationSource, compensationSource);
             if (processor.State is SwitchStateDefinition switchState)
             {
                 if (!processor.Activity.Metadata.TryGetValue(V1WorkflowActivityMetadata.Case, out var caseName))
@@ -467,18 +470,12 @@ namespace Synapse.Worker.Services
                 if (!switchState.TryGetCase(caseName, out SwitchCaseDefinition switchCase))
                     throw new InvalidOperationException($"Failed to find a case with name '{caseName}' in the state '{processor.State.Name}' of workflow '{this.Context.Workflow.Definition.Id}'");
                 metadata.Add(V1WorkflowActivityMetadata.Case, caseName);
-                var activity = null as V1WorkflowActivity;
-                switch (switchCase.Type)
+                V1WorkflowActivity activity = switchCase.Type switch
                 {
-                    case ConditionType.End:
-                        activity = await this.Context.Workflow.CreateActivityAsync(V1WorkflowActivityType.End, e.Output, metadata, null, this.CancellationToken);
-                        break;
-                    case ConditionType.Transition:
-                        activity = await this.Context.Workflow.CreateActivityAsync(V1WorkflowActivityType.Transition, e.Output, metadata, null, this.CancellationToken);
-                        break;
-                    default:
-                        throw new NotSupportedException($"The specified condition type '{switchCase.Type}' is not supported in this context");
-                }
+                    ConditionType.End => await this.Context.Workflow.CreateActivityAsync(V1WorkflowActivityType.End, e.Output, metadata, null, this.CancellationToken),
+                    ConditionType.Transition => await this.Context.Workflow.CreateActivityAsync(V1WorkflowActivityType.Transition, e.Output, metadata, null, this.CancellationToken),
+                    _ => throw new NotSupportedException($"The specified condition type '{switchCase.Type}' is not supported in this context"),
+                };
 #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
                 this.CreateActivityProcessor(activity);
 #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
@@ -503,6 +500,33 @@ namespace Synapse.Worker.Services
         }
 
         /// <summary>
+        /// Handles an <see cref="Exception"/> that has occured during the processing of a <see cref="StateDefinition"/>
+        /// </summary>
+        /// <param name="processor">The <see cref="IWorkflowActivityProcessor"/> that has thrown the <see cref="Exception"/> to handle</param>
+        /// <param name="ex">The <see cref="Exception"/> to handle</param>
+        /// <returns>A new awaitable <see cref="Task"/></returns>
+        protected virtual async Task OnStateProcessingErrorAsync(IStateProcessor processor, Exception ex)
+        {
+            if (string.IsNullOrWhiteSpace(processor.State.CompensatedBy))
+            {
+                await this.OnActivityProcessingErrorAsync(processor, ex);
+                return;
+            }
+            await this.Context.Workflow.CompensateActivityAsync(processor.Activity, this.CancellationToken);
+            var metadata = new Dictionary<string, string>()
+            {
+                { V1WorkflowActivityMetadata.State, processor.State.Name },
+                { V1WorkflowActivityMetadata.NextState, processor.State.CompensatedBy },
+                { V1WorkflowActivityMetadata.CompensationSource, processor.Activity.Id }
+            };
+            var activity = await this.Context.Workflow.CreateActivityAsync(V1WorkflowActivityType.Transition, await this.Context.Workflow.GetActivityStateDataAsync(processor.Activity, this.CancellationToken), metadata, null, this.CancellationToken);
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+            this.CreateActivityProcessor(activity);
+#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+            await this.OnActivityProcessingCompletedAsync(processor);
+        }
+
+        /// <summary>
         /// Handles the next <see cref="V1WorkflowActivityCompletedIntegrationEvent"/>
         /// </summary>
         /// <param name="processor">The <see cref="IWorkflowActivityProcessor"/> that has produced an <see cref="V1WorkflowActivityCompletedIntegrationEvent"/></param>
@@ -513,7 +537,12 @@ namespace Synapse.Worker.Services
             if (!this.Context.Workflow.Definition.TryGetState(processor.Transition.NextState, out StateDefinition nextState))
                 throw new NullReferenceException($"Failed to find a state with name '{processor.Transition.NextState}' in workflow '{this.Context.Workflow.Definition.Id} {this.Context.Workflow.Definition.Version}'");
             await this.Context.Workflow.TransitionToAsync(nextState, this.CancellationToken);
-            var metadata = new Dictionary<string, string>() { { V1WorkflowActivityMetadata.State, nextState.Name } };
+            var metadata = new Dictionary<string, string>() 
+            { 
+                { V1WorkflowActivityMetadata.State, nextState.Name }
+            };
+            if (processor.Activity.Metadata.TryGetValue(V1WorkflowActivityMetadata.CompensationSource, out var compensationSource))
+                metadata.Add(V1WorkflowActivityMetadata.CompensationSource, compensationSource);
             var activity = await this.Context.Workflow.CreateActivityAsync(V1WorkflowActivityType.State, e.Output, metadata, null, this.CancellationToken);
 #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
             this.CreateActivityProcessor(activity);
@@ -528,6 +557,8 @@ namespace Synapse.Worker.Services
         /// <returns>A new awaitable <see cref="Task"/></returns>
         protected virtual async Task OnEndCompletedAsync(IEndProcessor processor, V1WorkflowActivityCompletedIntegrationEvent e)
         {
+            if (processor.Activity.Metadata.TryGetValue(V1WorkflowActivityMetadata.CompensationSource, out var compensationSource))
+                await this.Context.Workflow.MarkActivityAsCompensatedAsync(compensationSource, this.CancellationToken);
             await this.Context.Workflow.SetOutputAsync(e.Output, this.CancellationToken);
         }
 
@@ -580,7 +611,9 @@ namespace Synapse.Worker.Services
         }
 
         /// <inheritdoc/>
+#pragma warning disable CA1816 // Dispose methods should call SuppressFinalize
         public override void Dispose()
+#pragma warning restore CA1816 // Dispose methods should call SuppressFinalize
         {
             this._ServerSignalStreamSubscription?.Dispose();
             this._OutboundEventStreamSubscription?.Dispose();

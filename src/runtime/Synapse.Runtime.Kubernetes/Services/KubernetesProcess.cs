@@ -66,7 +66,7 @@ namespace Synapse.Runtime.Kubernetes.Services
         /// </summary>
         protected Progress<string> LogProgress { get; } = new();
 
-        private IObservable<string> _Logs;
+        private readonly IObservable<string> _Logs;
         /// <inheritdoc/>
         public override IObservable<string> Logs => this._Logs;
 
@@ -78,32 +78,30 @@ namespace Synapse.Runtime.Kubernetes.Services
         public override async ValueTask StartAsync(CancellationToken cancellationToken = default)
         {
             this.Pod = await this.Kubernetes.CreateNamespacedPodAsync(this.Pod, this.Pod.Namespace(), cancellationToken: cancellationToken);
-            _ = Task.Run(() => ReadPodLogsAsync(cancellationToken), cancellationToken);
+            _ = Task.Run(() => this.ReadPodLogsAsync(cancellationToken), cancellationToken);
         }
 
-        private async Task PollPodUntilReadyAsync(CancellationToken cancellationToken = default) {
-            this.Pod = await this.Kubernetes.ReadNamespacedPodAsync(
-              this.Pod.Name(), this.Pod.Namespace(), cancellationToken: cancellationToken
-            );
-            while (this.Pod.Status.Phase == "Pending") {
+        private async Task PollPodUntilReadyAsync(CancellationToken cancellationToken = default) 
+        {
+            this.Pod = await this.Kubernetes.ReadNamespacedPodAsync(this.Pod.Name(), this.Pod.Namespace(), cancellationToken: cancellationToken);
+            while (this.Pod.Status.Phase == "Pending") 
+            {
                 await Task.Delay(250, cancellationToken);
-                this.Pod = await this.Kubernetes.ReadNamespacedPodAsync(
-                  this.Pod.Name(), this.Pod.Namespace(), cancellationToken: cancellationToken
-                );
+                this.Pod = await this.Kubernetes.ReadNamespacedPodAsync(this.Pod.Name(), this.Pod.Namespace(), cancellationToken: cancellationToken);
             }
         }
 
-        private async Task ReadPodLogsAsync(CancellationToken cancellationToken = default) {
+        private async Task ReadPodLogsAsync(CancellationToken cancellationToken = default) 
+        {
             await this.PollPodUntilReadyAsync(cancellationToken);
             var tcs = new TaskCompletionSource<string>();
-            var streamTask = this.Kubernetes.ReadNamespacedPodLogAsync(
-                this.Pod.Name(), this.Pod.Namespace(), follow: true, cancellationToken: cancellationToken);
+            var streamTask = this.Kubernetes.ReadNamespacedPodLogAsync(this.Pod.Name(), this.Pod.Namespace(), follow: true, cancellationToken: cancellationToken);
             using (var stream = await streamTask)
             using (var reader = new StreamReader(stream, new UTF8Encoding(false)))
             using (cancellationToken.Register(() => tcs.TrySetCanceled(cancellationToken)))
             {
                 string line;
-                while ((line = await await Task.WhenAny(reader.ReadLineAsync(), tcs.Task)) != null)
+                while ((line = await await Task.WhenAny(reader.ReadLineAsync()!, tcs.Task)) != null)
                 {
                     ((IProgress<string>)this.LogProgress).Report(line);
                 }

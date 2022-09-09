@@ -17,8 +17,23 @@
 
 namespace Synapse.Integration.Models
 {
+
     public partial class V1Correlation
     {
+
+        /// <summary>
+        /// An IReadOnlyCollection`1 containing the V1Correlation's conditions
+        /// </summary>
+        [DataMember(Name = "Conditions", Order = 3)]
+        [Description("An IReadOnlyCollection`1 containing the V1Correlation's conditions")]
+        public virtual ICollection<V1CorrelationCondition> Conditions { get; set; }
+
+        /// <summary>
+        /// An IReadOnlyCollection`1 containing the V1CorrelationContexts affected by the V1Correlation
+        /// </summary>
+        [DataMember(Name = "Contexts", Order = 5)]
+        [Description("An IReadOnlyCollection`1 containing the V1CorrelationContexts affected by the V1Correlation")]
+        public virtual ICollection<V1CorrelationContext> Contexts { get; set; }
 
         /// <summary>
         /// Determines whether or not the specified <see cref="V1Event"/> matches one of the <see cref="V1Correlation"/>'s conditions
@@ -37,7 +52,7 @@ namespace Synapse.Integration.Models
         /// </summary>
         /// <param name="e">The <see cref="V1Event"/> to get the <see cref="V1CorrelationCondition"/> for</param>
         /// <returns>The first matching <see cref="V1CorrelationCondition"/> for the specified <see cref="V1Event"/>, if any</returns>
-        public virtual V1CorrelationCondition? GetMatchingConditionFor(V1Event e)
+        public virtual V1CorrelationCondition GetMatchingConditionFor(V1Event e)
         {
             if (e == null)
                 throw new ArgumentNullException(nameof(e));

@@ -18,6 +18,7 @@
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
 using Synapse.Application.Configuration;
 using Synapse.Application.Services;
 using Synapse.Domain.Models;
@@ -90,18 +91,20 @@ namespace Synapse.Runtime.Services
             }
             finally
             {
-                if (response == null ? true : !response!.Containers.ContainsKey(containerId))
+                if (response == null || !response!.Containers.ContainsKey(containerId))
                     await this.Docker.Networks.ConnectNetworkAsync(this.Options.Network, new NetworkConnectParameters() { Container = containerId }, stoppingToken);
             }
         }
 
         /// <inheritdoc/>
-        public override async Task<IWorkflowProcess> CreateProcessAsync(V1WorkflowInstance workflowInstance, CancellationToken cancellationToken = default)
+        public override async Task<IWorkflowProcess> CreateProcessAsync(V1Workflow workflow, V1WorkflowInstance workflowInstance, CancellationToken cancellationToken = default)
         {
             if (workflowInstance == null)
                 throw new ArgumentNullException(nameof(workflowInstance));
             await this.PullWorkerImageAsync(cancellationToken);
-            var containerConfig = this.Options.Runtime.Container;
+            if (this.Options.Runtime.Container == null)
+                throw new Exception($"The '{nameof(DockerRuntimeOptions)}.{nameof(DockerRuntimeOptions.Container)}' property must be set and cannot be null");
+            var containerConfig = JsonConvert.DeserializeObject<Config>(JsonConvert.SerializeObject(this.Options.Runtime.Container))!;
             containerConfig.AddOrUpdateEnvironmentVariable(EnvironmentVariables.Api.HostName.Name, EnvironmentVariables.Api.HostName.Value!); //todo: instead, fetch values from options
             containerConfig.AddOrUpdateEnvironmentVariable(EnvironmentVariables.Runtime.WorkflowInstanceId.Name, workflowInstance.Id.ToString()); //todo: instead, fetch values from options
             if (this.ApplicationOptions.SkipCertificateValidation)
@@ -117,7 +120,7 @@ namespace Synapse.Runtime.Services
                 {
                     Type = "bind",
                     Source = this.Options.Secrets.Directory,
-                    Target = "/run/secrets"
+                    Target = "/run/secrets/synapse"
                 });
             }
             var createContainerParameters = new CreateContainerParameters(containerConfig)

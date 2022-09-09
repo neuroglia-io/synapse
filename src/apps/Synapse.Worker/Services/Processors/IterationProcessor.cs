@@ -133,7 +133,7 @@ namespace Synapse.Worker.Services.Processors
         /// <returns>The result of the action outputs aggregation</returns>
         protected virtual async Task<object> AggregateActionOutputsAsync(CancellationToken cancellationToken)
         {
-            var output = this.Activity.Input.ToObject();
+            object? output = null;
             foreach (var activity in (await this.Context.Workflow.GetActivitiesAsync(this.Activity, cancellationToken))
                 .Where(a => a.Type == V1WorkflowActivityType.Action && a.Status == V1WorkflowActivityStatus.Completed)
                 .OrderBy(a => a.ExecutedAt))
@@ -156,6 +156,8 @@ namespace Synapse.Worker.Services.Processors
                             expression = expression[2..^1];
                         expression = $"{expression} = {json}";
                     }
+                    if (output == null)
+                        output = new();
                     output = await this.Context.EvaluateAsync(expression, output, cancellationToken);
                 }
             }
@@ -195,7 +197,8 @@ namespace Synapse.Worker.Services.Processors
                                 if (processor.Activity.Metadata.TryGetValue(V1WorkflowActivityMetadata.Action, out var currentActionName)
                                      && this.State.TryGetNextAction(currentActionName, out ActionDefinition nextAction))
                                 {
-                                    var input = await this.Context.FilterInputAsync(nextAction, output, cancellationToken);
+                                    var input = (object)this.Activity.Input.ToObject().Merge(output);
+                                    input = await this.Context.FilterInputAsync(nextAction, input, cancellationToken);
                                     var metadata = new Dictionary<string, string>()
                                     {
                                         { V1WorkflowActivityMetadata.State, this.State.Name! },

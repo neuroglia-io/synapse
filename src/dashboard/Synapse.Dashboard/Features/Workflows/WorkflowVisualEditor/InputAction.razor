@@ -64,23 +64,16 @@
 </CascadingValue>
 
 @code {
-    [Parameter] 
-    public ActionDefinition? Value { get; set; }
+    [Parameter] public ActionDefinition? Value { get; set; }
     protected ActionDefinition? value { get; set; }
-    [Parameter] 
-    public EventCallback<ActionDefinition?> ValueChanged { get; set; }
+    [Parameter] public EventCallback<ActionDefinition?> ValueChanged { get; set; }
 
-    [Parameter]
-    public Expression<Func<ActionDefinition?>> ValueExpression { get; set; } = null!;
-    [Parameter, EditorRequired] 
-    public Expression<Func<ActionDefinition?>> ValidationFor { get; set; } = default!;
-    [Parameter] 
-    public string? Id { get; set; }
-    [CascadingParameter] 
-    protected EditContext CascadedEditContext  { get; set; } = null!;
+    [Parameter] public Expression<Func<ActionDefinition?>> ValueExpression { get; set; } = null!;
+    [Parameter, EditorRequired] public Expression<Func<ActionDefinition?>> ValidationFor { get; set; } = default!;
+    [Parameter] public string? Id { get; set; }
+    [CascadingParameter] protected EditContext CascadedEditContext  { get; set; } = null!;
 
     public ActionType ActionType { get; set; } = ActionType.Function;
-
 
     protected override async Task OnParametersSetAsync()
     {

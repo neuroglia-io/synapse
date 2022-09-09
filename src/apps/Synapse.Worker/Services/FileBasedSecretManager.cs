@@ -12,6 +12,9 @@ namespace Synapse.Worker.Services
         : BackgroundService, ISecretManager
     {
 
+        /// <summary>
+        /// Gets the default directory for file-based secrets
+        /// </summary>
         public static string DefaultSecretDirectory
         {
             get
@@ -19,7 +22,7 @@ namespace Synapse.Worker.Services
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                     return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "secrets");
                 else
-                    return "/run/secrets/";
+                    return "/run/secrets/synapse";
             }
         }
 

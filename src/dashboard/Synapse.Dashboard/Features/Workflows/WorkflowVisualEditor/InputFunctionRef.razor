@@ -43,22 +43,15 @@
 </CascadingValue>
 
     @code {
-        [Parameter] 
-    public FunctionReference? Value { get; set; }
+    [Parameter] public FunctionReference? Value { get; set; }
     protected FunctionReference? value { get; set; }
-    [Parameter] 
-    public EventCallback<FunctionReference?> ValueChanged { get; set; }
+    [Parameter] public EventCallback<FunctionReference?> ValueChanged { get; set; }
 
-    [Parameter]
-    public Expression<Func<FunctionReference?>> ValueExpression { get; set; } = null!;
-    [Parameter, EditorRequired] 
-    public Expression<Func<FunctionReference?>> ValidationFor { get; set; } = default!;
-    [Parameter] 
-    public string? Id { get; set; }
-    [CascadingParameter] 
-    protected EditContext CascadedEditContext  { get; set; } = null!;
-    [CascadingParameter]
-    protected ICollection<FunctionDefinition> FunctionDefinitions { get; set; } = null!;
+    [Parameter] public Expression<Func<FunctionReference?>> ValueExpression { get; set; } = null!;
+    [Parameter, EditorRequired] public Expression<Func<FunctionReference?>> ValidationFor { get; set; } = default!;
+    [Parameter] public string? Id { get; set; }
+    [CascadingParameter] protected EditContext CascadedEditContext  { get; set; } = null!;
+    [CascadingParameter] protected ICollection<FunctionDefinition> FunctionDefinitions { get; set; } = null!;
 
     protected FieldIdentifier fieldIdentifier;
     protected string fieldCssClasses => "form-control valid " + this.CascadedEditContext ?.FieldCssClass(this.fieldIdentifier) ?? "";
@@ -66,7 +59,6 @@
     protected string? argumentstId => this.Id + "-arguments";
     protected string? refName = null;
     protected DynamicObject? arguments = null;
-
 
     protected override async Task OnParametersSetAsync()
     {

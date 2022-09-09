@@ -24,16 +24,17 @@ namespace Synapse.Infrastructure.Services
     /// Defines the fundamentals of a service used to manage <see cref="IWorkflowProcess"/>es
     /// </summary>
     public interface IWorkflowProcessManager
-        : IHostedService
+        : IHostedService, IDisposable
     {
 
         /// <summary>
         /// Starts a new <see cref="IWorkflowProcess"/> for the specified <see cref="V1WorkflowInstance"/>
         /// </summary>
+        /// <param name="workflow">The instanciated <see cref="V1Workflow"/> to start a new <see cref="IWorkflowProcess"/> for</param>
         /// <param name="workflowInstance">The <see cref="V1WorkflowInstance"/> to start a new <see cref="IWorkflowProcess"/> for</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/></param>
         /// <returns>A new <see cref="IWorkflowProcess"/></returns>
-        Task<IWorkflowProcess> StartProcessAsync(V1WorkflowInstance workflowInstance, CancellationToken cancellationToken = default);
+        Task<IWorkflowProcess> StartProcessAsync(V1Workflow workflow, V1WorkflowInstance workflowInstance, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Gets the <see cref="IWorkflowProcess"/> with the specified id
@@ -41,7 +42,7 @@ namespace Synapse.Infrastructure.Services
         /// <param name="id">The id of the <see cref="IWorkflowProcess"/> to get</param>
         /// <returns>The <see cref="IWorkflowProcess"/> with the specified id</returns>
         IWorkflowProcess GetProcessById(string id);
-        void Dispose();
+    
     }
 
 }

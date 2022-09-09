@@ -86,7 +86,7 @@ namespace Synapse.Worker.Services
         /// <param name="contextAttributes">An <see cref="IEnumerable{T}"/> containing the context attributes used to correlate the specified <see cref="V1Event"/></param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/></param>
         /// <returns>A boolean indicating whether or not the specified <see cref="V1Event"/> could be correlated</returns>
-        Task<bool> TryCorrelateAsync(V1Event e, IEnumerable<string> contextAttributes, CancellationToken cancellationToken = default);
+        Task<bool> TryCorrelateAsync(V1Event e, IEnumerable<string>? contextAttributes, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Gets all the activities (including non-operative ones) of the current workflow
@@ -183,6 +183,22 @@ namespace Synapse.Worker.Services
         /// <param name="cancellationToken">A <see cref="CancellationToken"/></param>
         /// <returns>A new awaitable <see cref="Task"/></returns>
         Task FaultActivityAsync(V1WorkflowActivity activity, Integration.Models.Error error, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Compensates the specified <see cref="V1WorkflowActivity"/>
+        /// </summary>
+        /// <param name="activity">The <see cref="V1WorkflowActivity"/> to compensate</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/></param>
+        /// <returns>A new awaitable <see cref="Task"/></returns>
+        Task CompensateActivityAsync(V1WorkflowActivity activity, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Marks the specified <see cref="V1WorkflowActivity"/> as compensated
+        /// </summary>
+        /// <param name="activityId">The id of the <see cref="V1WorkflowActivity"/> to mark as compensated</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/></param>
+        /// <returns>A new awaitable <see cref="Task"/></returns>
+        Task MarkActivityAsCompensatedAsync(string activityId, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Gets the data of the <see cref="StateDefinition"/> the specified <see cref="V1WorkflowActivity"/> belongs to

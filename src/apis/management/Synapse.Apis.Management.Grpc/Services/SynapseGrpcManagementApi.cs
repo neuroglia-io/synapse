@@ -82,7 +82,7 @@ namespace Synapse.Apis.Management.Grpc
         }
 
         /// <inheritdoc/>
-        public virtual async Task<GrpcApiResult<V1Workflow>> UploadWorkflowAsync(V1UploadWorkflowCommand command, CallContext context = default)
+        public virtual Task<GrpcApiResult<V1Workflow>> UploadWorkflowAsync(V1UploadWorkflowCommand command, CallContext context = default)
         {
             throw new NotSupportedException();
         }
@@ -97,6 +97,18 @@ namespace Synapse.Apis.Management.Grpc
         public virtual async Task<GrpcApiResult<List<V1Workflow>>> GetWorkflowsAsync(string? query = null, CallContext context = default)
         {
             return GrpcApiResult.CreateFor(await this.Mediator.ExecuteAsync(new V1FilterQuery<V1Workflow>(this.QueryOptionsParser.Parse<V1Workflow>(query)), context.CancellationToken));
+        }
+
+        /// <inheritdoc/>
+        public virtual async Task<GrpcApiResult<byte[]>> ArchiveWorkflowAsync(string id, string? version = null, CallContext context = default)
+        {
+            var result = await this.Mediator.ExecuteAsync(new Application.Commands.Workflows.V1ArchiveWorkflowCommand(id, version), context.CancellationToken);
+            OperationResult<byte[]> toReturn;
+            if (result.Succeeded)
+                toReturn = new(((MemoryStream)result.Data!).ToArray());
+            else
+                toReturn = new(result.Code, result.Errors?.ToArray());
+            return GrpcApiResult.CreateFor(toReturn);
         }
 
         /// <inheritdoc/>

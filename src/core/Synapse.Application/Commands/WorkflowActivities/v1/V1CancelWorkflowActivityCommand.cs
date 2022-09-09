@@ -37,14 +37,14 @@ namespace Synapse.Application.Commands.WorkflowActivities
         /// <summary>
         /// Initializes a new <see cref="V1CancelWorkflowActivityCommand"/>
         /// </summary>
-        /// <param name="id">The id of the <see cref="Domain.Models.V1WorkflowActivity"/> to cancel</param>
+        /// <param name="id">The id of the <see cref="V1WorkflowActivity"/> to cancel</param>
         public V1CancelWorkflowActivityCommand(string id)
         {
             this.Id = id;
         }
 
         /// <summary>
-        /// Gets the id of the <see cref="Domain.Models.V1WorkflowActivity"/> to cancel
+        /// Gets the id of the <see cref="V1WorkflowActivity"/> to cancel
         /// </summary>
         public virtual string Id { get; protected set; }
 

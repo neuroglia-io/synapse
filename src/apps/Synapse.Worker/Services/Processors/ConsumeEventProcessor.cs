@@ -68,9 +68,19 @@ namespace Synapse.Worker.Services.Processors
         protected Timer IdleTimer { get; private set; } = null!;
 
         /// <inheritdoc/>
-        protected override Task InitializeAsync(CancellationToken cancellationToken)
+        protected override async Task InitializeAsync(CancellationToken cancellationToken)
         {
-            return Task.CompletedTask;
+            if (this.EventDefinition.Correlations != null)
+            {
+                foreach(var correlation in this.EventDefinition.Correlations)
+                {
+                    var value = correlation.ContextAttributeValue;
+                    if (!string.IsNullOrWhiteSpace(value)
+                        && value.IsRuntimeExpression())
+                        value = (await this.Context.EvaluateAsync(value, this.Activity.Input.ToObject()!, cancellationToken))!.ToString();
+                    await this.Context.Workflow.SetCorrelationMappingAsync(correlation.ContextAttributeName, value!, cancellationToken);
+                }
+            }
         }
 
         /// <inheritdoc/>
@@ -125,7 +135,6 @@ namespace Synapse.Worker.Services.Processors
         /// Handles an incoming <see cref="CloudEvent"/>
         /// </summary>
         /// <param name="e">The <see cref="CloudEvent"/> to handle</param>
-        /// <param name="cancellationToken">A <see cref="CancellationToken"/></param>
         /// <returns>A new awaitable <see cref="Task"/></returns>
         protected virtual async Task OnEventAsync(CloudEvent e)
         {
@@ -139,9 +148,15 @@ namespace Synapse.Worker.Services.Processors
                 if ((!string.IsNullOrWhiteSpace(this.EventDefinition.Source) && !Regex.IsMatch(e.Source!.ToString(), this.EventDefinition.Source, RegexOptions.IgnoreCase))
                     || (!string.IsNullOrWhiteSpace(this.EventDefinition.Type) && !Regex.IsMatch(e.Type!, this.EventDefinition.Type, RegexOptions.IgnoreCase)))
                     return;
-                if (!await this.Context.Workflow.TryCorrelateAsync(V1Event.CreateFrom(e), this.EventDefinition.Correlations?.Select(c => c.ContextAttributeName)!, this.CancellationTokenSource.Token))
+                var enveloppe = V1Event.CreateFrom(e);
+                if (!await this.Context.Workflow.TryCorrelateAsync(enveloppe, this.EventDefinition.Correlations?.Select(c => c.ContextAttributeName)!, this.CancellationTokenSource.Token))
                     return;
-                await this.OnNextAsync(new V1WorkflowActivityCompletedIntegrationEvent(this.Activity.Id, e.Data), this.CancellationTokenSource.Token);
+                object output;
+                if (this.EventDefinition.DataOnly)
+                    output = e.Data!;
+                else
+                    output = enveloppe;
+                await this.OnNextAsync(new V1WorkflowActivityCompletedIntegrationEvent(this.Activity.Id, output), this.CancellationTokenSource.Token);
                 await this.OnCompletedAsync(this.CancellationTokenSource.Token);
             }
         }

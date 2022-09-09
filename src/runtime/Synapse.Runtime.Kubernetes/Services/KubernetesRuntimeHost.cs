@@ -20,7 +20,9 @@ using k8s.Models;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Neuroglia;
 using Neuroglia.K8s;
+using Newtonsoft.Json;
 using Synapse.Application.Configuration;
 using Synapse.Application.Services;
 using Synapse.Domain.Models;
@@ -84,26 +86,31 @@ namespace Synapse.Runtime.Kubernetes.Services
         }
 
         /// <inheritdoc/>
-        public override Task<IWorkflowProcess> CreateProcessAsync(V1WorkflowInstance workflowInstance, CancellationToken cancellationToken = default)
+        public override Task<IWorkflowProcess> CreateProcessAsync(V1Workflow workflow, V1WorkflowInstance workflowInstance, CancellationToken cancellationToken = default)
         {
+            if (workflow == null)
+                throw new ArgumentNullException(nameof(workflow));
             if (workflowInstance == null)
                 throw new ArgumentNullException(nameof(workflowInstance));
-            var pod = this.BuildWorkerPodFor(workflowInstance);
+            var pod = this.BuildWorkerPodFor(workflow, workflowInstance);
             return Task.FromResult<IWorkflowProcess>(new KubernetesProcess(pod, this.Kubernetes));
         }
 
         /// <summary>
         /// Builds a new worker <see cref="V1Pod"/> for the specified <see cref="V1WorkflowInstance"/>
         /// </summary>
+        /// <param name="workflow">The instanciated <see cref="V1Workflow"/> to build a new worker <see cref="V1Pod"/> for</param>
         /// <param name="workflowInstance">The <see cref="V1WorkflowInstance"/> to build a new worker <see cref="V1Pod"/> for</param>
         /// <returns>A new worker <see cref="V1Pod"/></returns>
-        protected virtual V1Pod BuildWorkerPodFor(V1WorkflowInstance workflowInstance)
+        protected virtual V1Pod BuildWorkerPodFor(V1Workflow workflow, V1WorkflowInstance workflowInstance)
         {
+            if (workflow == null)
+                throw new ArgumentNullException(nameof(workflow));
             if (workflowInstance == null)
                 throw new ArgumentNullException(nameof(workflowInstance));
-            var pod = this.Options.WorkerPod;
-            if (pod == null)
+            if (this.Options.WorkerPod == null)
                 throw new Exception($"The '{nameof(KubernetesRuntimeOptions)}.{nameof(KubernetesRuntimeOptions.WorkerPod)}' property must be set and cannot be null");
+            var pod = JsonConvert.DeserializeObject<V1Pod>(JsonConvert.SerializeObject(this.Options.WorkerPod))!;
             if (pod.Metadata == null)
                 pod.Metadata = new();
             pod.Metadata.Name = workflowInstance.Id;
@@ -113,6 +120,34 @@ namespace Synapse.Runtime.Kubernetes.Services
                 || pod.Spec.Containers == null
                 || !pod.Spec.Containers.Any())
                 throw new InvalidOperationException("The specified V1Pod is not valid");
+            var volumeMounts = new List<V1VolumeMount>();
+            if(pod.Spec.Volumes == null)
+                pod.Spec.Volumes = new List<V1Volume>();
+            if (workflow.Definition.Secrets != null
+                && workflow.Definition.Secrets.Any())
+            {
+                var secretsVolume = new V1Volume("secrets")
+                {
+                    Projected = new()
+                    {
+                        Sources = new List<V1VolumeProjection>()
+                    }
+                };
+                pod.Spec.Volumes.Add(secretsVolume);
+                var secretsVolumeMount = new V1VolumeMount("/run/secrets/synapse", secretsVolume.Name, readOnlyProperty: true);
+                volumeMounts.Add(secretsVolumeMount);
+                foreach (var secret in workflow.Definition.Secrets)
+                {
+                    secretsVolume.Projected.Sources.Add(new() 
+                    { 
+                        Secret = new()
+                        {
+                            Name = secret,
+                            Optional = false
+                        }
+                    });
+                }
+            }
             foreach (var container in pod.Spec.Containers)
             {
                 if (container.Env == null)
@@ -123,6 +158,7 @@ namespace Synapse.Runtime.Kubernetes.Services
                 container.AddOrUpdateEnvironmentVariable(new(EnvironmentVariables.Kubernetes.PodName.Name, valueFrom: new V1EnvVarSource() { FieldRef = new V1ObjectFieldSelector("metadata.name") }));
                 if (this.ApplicationOptions.SkipCertificateValidation)
                     container.AddOrUpdateEnvironmentVariable(new(EnvironmentVariables.SkipCertificateValidation.Name, "true"));
+                container.VolumeMounts = volumeMounts;
             }
             return pod;
         }

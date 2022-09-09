@@ -129,7 +129,7 @@ namespace Synapse.Worker.Services.Processors
                 await base.InitializeAsync(cancellationToken);
                 await this.HttpClient.ConfigureAuthorizationAsync(this.ServiceProvider, this.Authentication, cancellationToken);
                 var openApiUriString = this.Function.Operation;
-                if (openApiUriString.IsWorkflowExpression())
+                if (openApiUriString.IsRuntimeExpression())
                 {
                     var evaluationResult = (string?)await this.Context.EvaluateAsync(openApiUriString, this.Activity.Input, cancellationToken);
                     if (!string.IsNullOrWhiteSpace(evaluationResult))
@@ -139,7 +139,7 @@ namespace Synapse.Worker.Services.Processors
                 if (operationComponents.Length != 2)
                     throw new FormatException($"The 'operation' property of the Open API function with name '{this.Function.Name}' has an invalid value '{this.Function.Operation}'. Open API functions expect a value in the following format: <url_to_openapi_endpoint>#<operation_id>");
                 openApiUriString = operationComponents.First();
-                if (openApiUriString.IsWorkflowExpression())
+                if (openApiUriString.IsRuntimeExpression())
                 {
                     var evaluationResult = (string?)await this.Context.EvaluateAsync(openApiUriString, this.Activity.Input, cancellationToken);
                     if (!string.IsNullOrWhiteSpace(evaluationResult))
@@ -150,13 +150,14 @@ namespace Synapse.Worker.Services.Processors
                 using (HttpRequestMessage request = new(HttpMethod.Get, openApiUri))
                 {
                     using HttpResponseMessage response = await this.HttpClient.SendAsync(request, cancellationToken);
+                    var responseContent = response.Content == null ? null : await response.Content.ReadAsStringAsync(cancellationToken);
                     if (!response.IsSuccessStatusCode)
                     {
                         this.Logger.LogInformation("Failed to retrieve the Open API document at location '{uri}'. The remote server responded with a non-success status code '{statusCode}'.", openApiUri, response.StatusCode);
-                        this.Logger.LogDebug("Response content:/r/n{responseContent}", response.Content == null ? "None" : await response.Content.ReadAsStringAsync(cancellationToken));
-                        response.EnsureSuccessStatusCode();
+                        this.Logger.LogDebug("Response content:\r\n{responseContent}", responseContent ?? "None");
+                        response.EnsureSuccessStatusCode(responseContent);
                     }
-                    using Stream responseStream = await response.Content!.ReadAsStreamAsync(cancellationToken)!;
+                    using var responseStream = await response.Content!.ReadAsStreamAsync(cancellationToken)!;
                     this.Document = new OpenApiStreamReader().Read(responseStream, out var diagnostic);
                 }
                 var operation = this.Document.Paths
@@ -173,7 +174,9 @@ namespace Synapse.Worker.Services.Processors
                     .Single(p => p.Value.Operations.Any(o => o.Value.OperationId == operation.Value.OperationId));
                 this.Path = path.Key;
                 await this.BuildParametersAsync(cancellationToken);
-                foreach (OpenApiParameter param in this.Operation.Parameters
+                var parameters = path.Value.Parameters.ToList();
+                parameters.AddRange(this.Operation.Parameters);
+                foreach (OpenApiParameter param in parameters
                     .Where(p => p.In == ParameterLocation.Cookie)
                     .GroupBy(p => p.Name))
                 {
@@ -183,7 +186,7 @@ namespace Synapse.Worker.Services.Processors
                     else if (param.Required)
                         throw new NullReferenceException($"Failed to find the definition of the required parameter '{param.Name}' in the function definition with name '{this.Function.Name}'");
                 }
-                foreach (OpenApiParameter param in this.Operation.Parameters
+                foreach (OpenApiParameter param in parameters
                     .Where(p => p.In == ParameterLocation.Header))
                 {
                     var match = await this.TryGetParameterAsync($@".""{param.Name}""", cancellationToken);
@@ -192,7 +195,7 @@ namespace Synapse.Worker.Services.Processors
                     else if (param.Required)
                         throw new NullReferenceException($"Failed to find the definition of the required parameter '{param.Name}' in the function definition with name '{this.Function.Name}'");
                 }
-                foreach (OpenApiParameter param in this.Operation.Parameters
+                foreach (OpenApiParameter param in parameters
                     .Where(p => p.In == ParameterLocation.Path))
                 {
                     var match = await this.TryGetParameterAsync($@".""{param.Name}""", cancellationToken);
@@ -202,7 +205,7 @@ namespace Synapse.Worker.Services.Processors
                         throw new NullReferenceException($"Failed to find the definition of the required parameter '{param.Name}' in the function definition with name '{this.Function.Name}'");
                 }
                 Dictionary<string, string> queryParameters = new();
-                foreach (OpenApiParameter param in this.Operation.Parameters
+                foreach (OpenApiParameter param in parameters
                     .Where(p => p.In == ParameterLocation.Query))
                 {
                     var match = await this.TryGetParameterAsync($@".""{param.Name}""", cancellationToken);
@@ -257,11 +260,11 @@ namespace Synapse.Worker.Services.Processors
                 this.Parameters = new Dictionary<string, object>();
             if (this.FunctionReference.Arguments == null)
                 return;
-            var jsonInput = JsonConvert.SerializeObject(this.Activity.Input!.ToObject()!);
-            var jsonArgs = JsonConvert.SerializeObject(this.FunctionReference.Arguments);
+            var jsonInput = JsonConvert.SerializeObject(this.Activity.Input!.ToObject()!, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
+            var jsonArgs = JsonConvert.SerializeObject(this.FunctionReference.Arguments, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
             foreach (Match match in Regex.Matches(jsonArgs, @"""\$\{.+?\}"""))
             {
-                var expression = match.Value[3..^2].Trim();
+                var expression = match.Value[3..^2].Trim().Replace(@"\""", @"""");
                 var evaluationResult = await this.Context.EvaluateAsync(expression, this.Activity.Input!.ToObject()!, cancellationToken);
                 if(evaluationResult == null)
                 {
@@ -339,8 +342,8 @@ namespace Synapse.Worker.Services.Processors
                     if (!response.IsSuccessStatusCode)
                     {
                         this.Logger.LogInformation("Failed to execute the Open API operation '{operationId}' at '{uri}'. The remote server responded with a non-success status code '{statusCode}'.", this.Operation.OperationId, response.RequestMessage!.RequestUri, response.StatusCode);
-                        this.Logger.LogDebug("Response content:/r/n{responseContent}", contentString ?? "None");
-                        response.EnsureSuccessStatusCode();
+                        this.Logger.LogDebug("Response content:\r\n{responseContent}", contentString ?? "None");
+                        response.EnsureSuccessStatusCode(contentString);
                     }
                     if (rawContent!= null)
                     {
