@@ -130,12 +130,17 @@
 
     protected async Task OnMonacoEditorDidInit(MonacoEditorBase editorBase)
     {
-        var model = await (editor as MonacoEditor)!.GetModel();
+        var model = await this.editor.GetModel();
         await MonacoEditorBase.SetModelLanguage(model, this.MonacoEditorHelper.PreferedLanguage);
-        await (editor as MonacoEditor)!.SetValue(this.editorValueBuffer);
+        await this.editor.SetValue(this.editorValueBuffer);
         if (this.MonacoEditorHelper.PreferedLanguage == PreferedLanguage.JSON)
         {
             await model.jsRuntime.InvokeVoidAsync("enableJsonValidation08" , model.Uri);            
+        }
+        else
+        {
+            model.Uri = "a://b/foo.yaml";
+            await this.editor.SetModel(model);
         }
     }
 

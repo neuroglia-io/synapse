@@ -161,9 +161,20 @@
     <script>if ('serviceWorker' in navigator) { navigator.serviceWorker.register('service-worker.js'); } else { console.warn('Service worker is not supported, PWA capatiblites disabled.'); }</script>
     <script src="_content/Neuroglia.Blazor.Dagre/lib/dagre/dagre.js"></script>
     <script src="_content/Neuroglia.Blazor.Dagre/neuroglia-blazor-dagre-interop.js"></script>
-    <script src="_content/BlazorMonaco/lib/monaco-editor/min/vs/loader.js"></script>
+    <!--<script src="_content/BlazorMonaco/lib/monaco-editor/min/vs/loader.js"></script>
     <script>require.config({ paths: { 'vs': '_content/BlazorMonaco/lib/monaco-editor/min/vs' } });</script>
-    <script src="_content/BlazorMonaco/lib/monaco-editor/min/vs/editor/editor.main.js"></script>
+    <script src="_content/BlazorMonaco/lib/monaco-editor/min/vs/editor/editor.main.js"></script>-->
+    <script type="text/javascript">
+        // Mock loader 'require'
+        window.require = {
+            getConfig: () => ({
+                paths: {
+                    vs: 'mock'
+                }
+            })
+        };
+    </script>
+    <script src="lib/monaco/main.js"></script>
     <script src="_content/BlazorMonaco/jsInterop.js"></script>
 </body>
 
