@@ -7,6 +7,9 @@ on:
   
 jobs:
   build:
+    if: github.repository == 'serverlessworkflow/synapse' && github.ref_name == 'main'
+#   Check the current repository of performing the action, if it is not the 'serverlessworkflow/synapse' cancels the job.
+#   Check the current branch of performing the action, if it is not the 'main' cancel the job.
     runs-on: ubuntu-18.04
 
     steps:
@@ -17,8 +20,10 @@ jobs:
 
       - name: Reset Origin
         run: |
-          git remote set-url origin "https://cdavernas:${{ secrets.GITHUB_TOKEN }}@github.com/serverlessworkflow/synapse.git"
+          git remote set-url origin "https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git"
           git checkout ${{ github.ref_name }}
+#   'github.actor' will be the account how will perform the push (or most of the case 'merge pull request').
+#   'secrets.GITHUB_TOKEN' was the token creates for the current action, it is associated with the 'github.actor' and will persist until the end of the action.
           
       - name: Install Versioning.NET
         run: |
