@@ -17,6 +17,7 @@
 
 namespace Synapse
 {
+
     /// <summary>
     /// Defines extensions for <see cref="DirectoryInfo"/>s
     /// </summary>

@@ -79,12 +79,12 @@ namespace Synapse.Application.Commands.Workflows
         /// <param name="loggerFactory">The service used to create <see cref="ILogger"/>s</param>
         /// <param name="mediator">The service used to mediate calls</param>
         /// <param name="mapper">The service used to map objects</param>
-        /// <param name="options">The service used to access the current <see cref="SynapseApplicationOptions"/></param>
+        /// <param name="options">The service used to access the current <see cref="ApplicationOptions"/></param>
         /// <param name="serializerProvider">The service used to provide <see cref="ISerializer"/>s</param>
         /// <param name="workflows">The <see cref="IRepository"/> used to manage <see cref="V1Workflow"/>s</param>
         /// <param name="workflowInstances">The <see cref="IRepository"/> used to manage <see cref="V1WorkflowInstance"/>s</param>
         /// <param name="workflowProcesses">The <see cref="IRepository"/> used to manage <see cref="V1WorkflowProcess"/>es</param>
-        public V1ArchiveWorkflowCommandHandler(IServiceProvider serviceProvider, ILoggerFactory loggerFactory, IMediator mediator, IMapper mapper, IOptions<SynapseApplicationOptions> options,
+        public V1ArchiveWorkflowCommandHandler(IServiceProvider serviceProvider, ILoggerFactory loggerFactory, IMediator mediator, IMapper mapper, IOptions<ApplicationOptions> options,
             ISerializerProvider serializerProvider, IRepository<Integration.Models.V1Workflow> workflows, IRepository<Integration.Models.V1WorkflowInstance> workflowInstances, IRepository<Integration.Models.V1WorkflowProcess> workflowProcesses)
             : base(loggerFactory, mediator, mapper)
         {
@@ -97,9 +97,9 @@ namespace Synapse.Application.Commands.Workflows
         }
 
         /// <summary>
-        /// Gets the current <see cref="SynapseApplicationOptions"/>
+        /// Gets the current <see cref="ApplicationOptions"/>
         /// </summary>
-        protected SynapseApplicationOptions Options { get; }
+        protected ApplicationOptions Options { get; }
 
         /// <summary>
         /// Gets the service used to serialize the <see cref="V1WorkflowInstance"/> to archive and its components

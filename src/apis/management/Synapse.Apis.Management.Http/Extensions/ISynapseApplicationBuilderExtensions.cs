@@ -32,7 +32,7 @@ namespace Synapse.Apis.Management.Http
 {
 
     /// <summary>
-    /// Defines extensions for <see cref="ISynapseApplicationBuilder"/>s
+    /// Defines extensions for <see cref="IApplicationBuilder"/>s
     /// </summary>
     public static class ISynapseApplicationBuilderExtensions
     {
@@ -40,9 +40,9 @@ namespace Synapse.Apis.Management.Http
         /// <summary>
         /// Configures Synapse to use the Http REST API port
         /// </summary>
-        /// <param name="synapse">The <see cref="ISynapseApplicationBuilder"/> to configure</param>
-        /// <returns>The configured <see cref="ISynapseApplicationBuilder"/></returns>
-        public static ISynapseApplicationBuilder UseHttpManagementApi(this ISynapseApplicationBuilder synapse)
+        /// <param name="synapse">The <see cref="IApplicationBuilder"/> to configure</param>
+        /// <returns>The configured <see cref="IApplicationBuilder"/></returns>
+        public static IApplicationBuilder UseHttpManagementApi(this IApplicationBuilder synapse)
         {
             var searchBinder = new ODataSearchBinder();
             synapse.Services.AddSingleton<ISearchBinder>(searchBinder);

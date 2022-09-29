@@ -43,7 +43,7 @@ namespace Synapse.Integration.Commands.Workflows
 		/// </summary>
 		[DataMember(Name = "Version", Order = 2)]
 		[Description("The version of the V1Workflow to archive")]
-		public virtual string Version { get; set; }
+		public virtual string? Version { get; set; }
 
     }
 

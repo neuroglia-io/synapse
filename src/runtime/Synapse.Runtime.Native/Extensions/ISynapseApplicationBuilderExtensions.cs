@@ -27,7 +27,7 @@ namespace Synapse.Runtime
 {
 
     /// <summary>
-    /// Defines extensions for <see cref="ISynapseApplicationBuilder"/>s
+    /// Defines extensions for <see cref="IApplicationBuilder"/>s
     /// </summary>
     public static class ISynapseApplicationBuilderExtensions
     {
@@ -35,9 +35,9 @@ namespace Synapse.Runtime
         /// <summary>
         /// Uses a native <see cref="IWorkflowRuntime"/>
         /// </summary>
-        /// <param name="app">The <see cref="ISynapseApplicationBuilder"/> to configure</param>
-        /// <returns>The configured <see cref="ISynapseApplicationBuilder"/></returns>
-        public static ISynapseApplicationBuilder UseNativeRuntime(this ISynapseApplicationBuilder app)
+        /// <param name="app">The <see cref="IApplicationBuilder"/> to configure</param>
+        /// <returns>The configured <see cref="IApplicationBuilder"/></returns>
+        public static IApplicationBuilder UseNativeRuntime(this IApplicationBuilder app)
         {
             var runtimeHostOptions = new NativeRuntimeOptions();
             app.Configuration.Bind("native", runtimeHostOptions);

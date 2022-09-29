@@ -34,9 +34,9 @@ namespace Synapse.Application.Services
             /// </summary>
             /// <param name="serviceProvider">The current <see cref="IServiceProvider"/></param>
             /// <param name="logger">The service used to perform logging</param>
-            /// <param name="options">The service used to access the current <see cref="SynapseApplicationOptions"/></param>
+            /// <param name="options">The service used to access the current <see cref="ApplicationOptions"/></param>
             /// <param name="workflowReader">The service used to read <see cref="WorkflowDefinition"/>s</param>
-            public WorkflowDefinitionFileMonitor(IServiceProvider serviceProvider, ILogger<WorkflowDefinitionFileMonitor> logger, IOptions<SynapseApplicationOptions> options, IWorkflowReader workflowReader)
+            public WorkflowDefinitionFileMonitor(IServiceProvider serviceProvider, ILogger<WorkflowDefinitionFileMonitor> logger, IOptions<ApplicationOptions> options, IWorkflowReader workflowReader)
             {
                 this.ServiceProvider = serviceProvider;
                 this.Logger = logger;
@@ -55,9 +55,9 @@ namespace Synapse.Application.Services
             protected ILogger Logger { get; }
 
             /// <summary>
-            /// Gets the current <see cref="SynapseApplicationOptions"/>
+            /// Gets the current <see cref="ApplicationOptions"/>
             /// </summary>
-            protected SynapseApplicationOptions Options { get; }
+            protected ApplicationOptions Options { get; }
 
             /// <summary>
             /// Gets the service used to read <see cref="WorkflowDefinition"/>s

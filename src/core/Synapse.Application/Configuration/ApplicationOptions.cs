@@ -21,13 +21,13 @@ namespace Synapse.Application.Configuration
     /// <summary>
     /// Represents the options used to configure the Synapse application
     /// </summary>
-    public class SynapseApplicationOptions
+    public class ApplicationOptions
     {
 
         /// <summary>
-        /// Initializes a new <see cref="SynapseApplicationOptions"/>
+        /// Initializes a new <see cref="ApplicationOptions"/>
         /// </summary>
-        public SynapseApplicationOptions()
+        public ApplicationOptions()
         {
             var env = EnvironmentVariables.SkipCertificateValidation.Value;
 
@@ -42,6 +42,11 @@ namespace Synapse.Application.Configuration
         /// Gets/sets the options used to configure the way Synapse archives <see cref="V1WorkflowInstance"/>s
         /// </summary>
         public virtual ArchivingOptions Archiving { get; set; } = new();
+
+        /// <summary>
+        /// Gets/sets the options used to configure authentication on Synapse
+        /// </summary>
+        public virtual AuthenticationOptions Authentication { get; set; } = new() { Basic = new() { Username = "synapse", Password = "synapse" } };
 
         /// <summary>
         /// Gets/sets the options used to configure the application's cloud eventss

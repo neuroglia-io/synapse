@@ -37,12 +37,12 @@ namespace Synapse.Application.Configuration
         /// <param name="configuration">The current <see cref="IConfiguration"/></param>
         /// <param name="setup">An <see cref="Action{T}"/> used to configure Synapse</param>
         /// <returns>The configured <see cref="IServiceCollection"/></returns>
-        public static IServiceCollection AddSynapse(this IServiceCollection services, IConfiguration configuration, Action<ISynapseApplicationBuilder> setup)
+        public static IServiceCollection AddSynapse(this IServiceCollection services, IConfiguration configuration, Action<IApplicationBuilder> setup)
         {
-            var applicationOptions = new SynapseApplicationOptions();
+            var applicationOptions = new ApplicationOptions();
             configuration.Bind(applicationOptions);
-            services.Configure<SynapseApplicationOptions>(configuration);
-            var appBuilder = new SynapseApplicationBuilder(configuration, services);
+            services.Configure<ApplicationOptions>(configuration);
+            var appBuilder = new ApplicationBuilder(configuration, services);
             setup(appBuilder);
             appBuilder.Build();
             return services;

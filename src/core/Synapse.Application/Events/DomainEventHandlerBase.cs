@@ -34,8 +34,8 @@ namespace Synapse.Application.Events
         /// <param name="mapper">The service used to map objects</param>
         /// <param name="mediator">The service used to mediate calls</param>
         /// <param name="integrationEventBus">The service used to publish <see cref="IIntegrationEvent"/>s</param>
-        /// <param name="applicationOptions">The current <see cref="SynapseApplicationOptions"/></param>
-        protected DomainEventHandlerBase(ILoggerFactory loggerFactory, IMapper mapper, IMediator mediator, IIntegrationEventBus integrationEventBus, IOptions<SynapseApplicationOptions> applicationOptions)
+        /// <param name="applicationOptions">The current <see cref="Configuration.ApplicationOptions"/></param>
+        protected DomainEventHandlerBase(ILoggerFactory loggerFactory, IMapper mapper, IMediator mediator, IIntegrationEventBus integrationEventBus, IOptions<ApplicationOptions> applicationOptions)
         {
             this.Logger = loggerFactory.CreateLogger(this.GetType());
             this.Mapper = mapper;
@@ -65,9 +65,9 @@ namespace Synapse.Application.Events
         protected IIntegrationEventBus IntegrationEventBus { get; }
 
         /// <summary>
-        /// Gets the current <see cref="SynapseApplicationOptions"/>
+        /// Gets the current <see cref="Configuration.ApplicationOptions"/>
         /// </summary>
-        protected SynapseApplicationOptions ApplicationOptions { get; }
+        protected ApplicationOptions ApplicationOptions { get; }
 
         /// <summary>
         /// Publishes a <see cref="CloudEvent"/> for the specified <see cref="IDomainEvent"/>
@@ -118,11 +118,11 @@ namespace Synapse.Application.Events
         /// <param name="mapper">The service used to map objects</param>
         /// <param name="mediator">The service used to mediate calls</param>
         /// <param name="integrationEventBus">The service used to publish <see cref="IIntegrationEvent"/>s</param>
-        /// <param name="synapseOptions">The current <see cref="Configuration.SynapseApplicationOptions"/></param>
+        /// <param name="synapseOptions">The current <see cref="Configuration.ApplicationOptions"/></param>
         /// <param name="aggregates">The <see cref="IRepository"/> used to manage the <see cref="IAggregateRoot"/>s to handle the <see cref="IDomainEvent"/>s of</param>
         /// <param name="projections">The <see cref="IRepository"/> used to manage the <see cref="DomainEventHandlerBase"/>'s projections</param>
         protected DomainEventHandlerBase(ILoggerFactory loggerFactory, IMapper mapper, IMediator mediator, IIntegrationEventBus integrationEventBus, 
-            IOptions<SynapseApplicationOptions> synapseOptions, IRepository<TAggregate> aggregates, IRepository<TProjection> projections)
+            IOptions<ApplicationOptions> synapseOptions, IRepository<TAggregate> aggregates, IRepository<TProjection> projections)
             : base(loggerFactory, mapper, mediator, integrationEventBus, synapseOptions)
         {
             this.Aggregates = aggregates;

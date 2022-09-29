@@ -16,8 +16,8 @@ namespace Synapse.Application.Services
         /// </summary>
         /// <param name="serviceProvider">The current <see cref="IServiceProvider"/></param>
         /// <param name="pluginManager">A service used to manage the application's <see cref="IPlugin"/>s</param>
-        /// <param name="options">The service used to access the current <see cref="SynapseApplicationOptions"/></param>
-        public PluginBasedRepositoryFactory(IServiceProvider serviceProvider, IPluginManager pluginManager, IOptions<SynapseApplicationOptions> options)
+        /// <param name="options">The service used to access the current <see cref="ApplicationOptions"/></param>
+        public PluginBasedRepositoryFactory(IServiceProvider serviceProvider, IPluginManager pluginManager, IOptions<ApplicationOptions> options)
         {
             this.ServiceProvider = serviceProvider;
             this.PluginManager = pluginManager;
@@ -35,9 +35,9 @@ namespace Synapse.Application.Services
         protected IPluginManager PluginManager { get; }
 
         /// <summary>
-        /// Gets the current <see cref="SynapseApplicationOptions"/>
+        /// Gets the current <see cref="ApplicationOptions"/>
         /// </summary>
-        protected SynapseApplicationOptions Options { get; }
+        protected ApplicationOptions Options { get; }
 
         /// <inheritdoc/>
         public virtual IRepository CreateRepository(Type entityType, Type keyType, ApplicationModelType modelType)

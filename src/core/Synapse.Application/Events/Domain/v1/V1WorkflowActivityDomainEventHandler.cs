@@ -39,7 +39,7 @@ namespace Synapse.Application.Events.Domain
 
         /// <inheritdoc/>
         public V1WorkflowActivityDomainEventHandler(ILoggerFactory loggerFactory, IMapper mapper, IMediator mediator, IIntegrationEventBus integrationEventBus,
-            IOptions<SynapseApplicationOptions> synapseOptions, IRepository<V1WorkflowActivity> aggregates, IRepository<Integration.Models.V1WorkflowActivity> projections,
+            IOptions<ApplicationOptions> synapseOptions, IRepository<V1WorkflowActivity> aggregates, IRepository<Integration.Models.V1WorkflowActivity> projections,
             IRepository<Integration.Models.V1WorkflowInstance> workflowInstances)
             : base(loggerFactory, mapper, mediator, integrationEventBus, synapseOptions, aggregates, projections)
         {

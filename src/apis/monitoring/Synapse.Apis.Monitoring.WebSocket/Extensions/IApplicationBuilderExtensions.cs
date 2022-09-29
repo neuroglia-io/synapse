@@ -27,7 +27,7 @@ namespace Synapse.Apis.Monitoring.WebSocket
 {
 
     /// <summary>
-    /// Defines extensions for <see cref="ISynapseApplicationBuilder"/>s
+    /// Defines extensions for <see cref="IApplicationBuilder"/>s
     /// </summary>
     public static class ISynapseApplicationBuilderExtensions
     {
@@ -35,9 +35,9 @@ namespace Synapse.Apis.Monitoring.WebSocket
         /// <summary>
         /// Configures Synapse to use the Http REST API port
         /// </summary>
-        /// <param name="synapse">The <see cref="ISynapseApplicationBuilder"/> to configure</param>
-        /// <returns>The configured <see cref="ISynapseApplicationBuilder"/></returns>
-        public static ISynapseApplicationBuilder UseWebSocketMonitoringApi(this ISynapseApplicationBuilder synapse)
+        /// <param name="synapse">The <see cref="IApplicationBuilder"/> to configure</param>
+        /// <returns>The configured <see cref="IApplicationBuilder"/></returns>
+        public static IApplicationBuilder UseWebSocketMonitoringApi(this IApplicationBuilder synapse)
         {
             synapse.Services.AddSignalR()
                 .AddNewtonsoftJsonProtocol(options =>

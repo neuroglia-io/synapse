@@ -47,10 +47,10 @@ namespace Synapse.Runtime.Services
         /// <param name="loggerFactory">The service used to create <see cref="ILogger"/>s</param>
         /// <param name="environment">The current <see cref="IHostEnvironment"/></param>
         /// <param name="httpClientFactory">The service used to create <see cref="System.Net.Http.HttpClient"/>s</param>
-        /// <param name="applicationOptions">The service used to access the current <see cref="SynapseApplicationOptions"/></param>
+        /// <param name="applicationOptions">The service used to access the current <see cref="Application.Configuration.ApplicationOptions"/></param>
         /// <param name="options">The service used to access the current <see cref="NativeRuntimeOptions"/></param>
         public NativeRuntime(ILoggerFactory loggerFactory, IHostEnvironment environment, IHttpClientFactory httpClientFactory, 
-            IOptions<SynapseApplicationOptions> applicationOptions, IOptions<NativeRuntimeOptions> options)
+            IOptions<ApplicationOptions> applicationOptions, IOptions<NativeRuntimeOptions> options)
             : base(loggerFactory)
         {
             this.Environment = environment;
@@ -70,9 +70,9 @@ namespace Synapse.Runtime.Services
         protected HttpClient HttpClient { get; }
 
         /// <summary>
-        /// Gets the current <see cref="SynapseApplicationOptions"/>
+        /// Gets the current <see cref="Application.Configuration.ApplicationOptions"/>
         /// </summary>
-        protected SynapseApplicationOptions ApplicationOptions { get; }
+        protected ApplicationOptions ApplicationOptions { get; }
 
         /// <summary>
         /// Gets the current <see cref="NativeRuntimeOptions"/>

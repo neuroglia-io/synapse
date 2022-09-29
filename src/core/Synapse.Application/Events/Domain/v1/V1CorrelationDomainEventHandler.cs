@@ -34,7 +34,7 @@ namespace Synapse.Application.Events.Domain
 
         /// <inheritdoc/>
         public V1CorrelationDomainEventHandler(ILoggerFactory loggerFactory, IMapper mapper, IMediator mediator, IIntegrationEventBus integrationEventBus,
-            IOptions<SynapseApplicationOptions> synapseOptions, IRepository<V1Correlation> aggregates, IRepository<Integration.Models.V1Correlation> projections)
+            IOptions<ApplicationOptions> synapseOptions, IRepository<V1Correlation> aggregates, IRepository<Integration.Models.V1Correlation> projections)
             : base(loggerFactory, mapper, mediator, integrationEventBus, synapseOptions, aggregates, projections)
         {
 

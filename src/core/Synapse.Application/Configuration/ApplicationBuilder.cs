@@ -16,8 +16,14 @@
  */
 
 using CloudNative.CloudEvents.NewtonsoftJson;
+using IdentityModel;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.JsonPatch.Adapters;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Http;
 using Neuroglia.Data.Expressions;
 using Neuroglia.Serialization;
@@ -26,6 +32,8 @@ using Newtonsoft.Json.Serialization;
 using ServerlessWorkflow.Sdk;
 using Synapse.Infrastructure;
 using Synapse.Integration.Serialization.Converters;
+using System.IdentityModel.Tokens.Jwt;
+using System.Net;
 using System.Reactive.Subjects;
 using System.Reflection;
 
@@ -33,40 +41,41 @@ namespace Synapse.Application.Configuration
 {
 
     /// <summary>
-    /// Represents the default implementation of the <see cref="ISynapseApplicationBuilder"/> interface
+    /// Represents the default implementation of the <see cref="IApplicationBuilder"/> interface
     /// </summary>
-    public class SynapseApplicationBuilder
-        : ISynapseApplicationBuilder
+    public class ApplicationBuilder
+        : IApplicationBuilder
     {
 
         /// <summary>
-        /// Initializes a new <see cref="SynapseApplicationBuilder"/>
+        /// Initializes a new <see cref="ApplicationBuilder"/>
         /// </summary>
         /// <param name="configuration">The current <see cref="IConfiguration"/></param>
         /// <param name="services">The <see cref="IServiceCollection"/> to configure</param>
-        public SynapseApplicationBuilder(IConfiguration configuration, IServiceCollection services)
+        public ApplicationBuilder(IConfiguration configuration, IServiceCollection services)
         {
             this.Configuration = configuration;
             this.Services = services;
+            this.Options = new();
+            this.Configuration.Bind(this.Options);
         }
 
-        /// <summary>
-        /// Gets the current <see cref="IConfiguration"/>
-        /// </summary>
+        /// <inheritdoc/>
         public IConfiguration Configuration { get; }
 
-        /// <summary>
-        /// Gets the <see cref="IServiceCollection"/> to configure
-        /// </summary>
+        /// <inheritdoc/>
         public IServiceCollection Services { get; }
+
+        /// <inheritdoc/>
+        public ApplicationOptions Options { get; }
 
         /// <summary>
         /// Gets a <see cref="List{T}"/> containing the assemblies to scan to automatically register mapping-related services
         /// </summary>
-        protected List<Assembly> MapperAssemblies { get; } = new() { typeof(SynapseApplicationBuilder).Assembly };
+        protected List<Assembly> MapperAssemblies { get; } = new() { typeof(ApplicationBuilder).Assembly };
 
         /// <inheritdoc/>
-        public virtual ISynapseApplicationBuilder AddMappingProfile<TProfile>() 
+        public virtual IApplicationBuilder AddMappingProfile<TProfile>() 
             where TProfile : AutoMapper.Profile
         {
             var assembly = typeof(TProfile).Assembly;
@@ -78,6 +87,7 @@ namespace Synapse.Application.Configuration
         /// <inheritdoc/>
         public virtual void Build()
         {
+            
             JsonConvert.DefaultSettings = () =>
             {
                 var settings = new JsonSerializerSettings()
@@ -90,6 +100,9 @@ namespace Synapse.Application.Configuration
                 return settings;
             };
 
+            JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
+            JwtSecurityTokenHandler.DefaultOutboundClaimTypeMap.Clear();
+
             var writeModelTypes = TypeCacheUtil.FindFilteredTypes("syn:models-write", t => t.IsClass && !t.IsAbstract && typeof(IAggregateRoot).IsAssignableFrom(t), typeof(V1Workflow).Assembly).ToList();
             var readModelTypes = writeModelTypes
                 .Where(t => t.TryGetCustomAttribute<DataTransferObjectTypeAttribute>(out _))
@@ -97,14 +110,12 @@ namespace Synapse.Application.Configuration
                 .ToList();
             readModelTypes.AddRange(TypeCacheUtil.FindFilteredTypes("syn:models-read", t => t.IsClass && !t.IsAbstract && t.TryGetCustomAttribute<ReadModelAttribute>(out _)));
             readModelTypes = readModelTypes.Distinct().ToList();
-            SynapseApplicationOptions options = new();
-            this.Configuration.Bind(options);
 
-            this.Services.AddSingleton(Options.Create(options));
+            this.Services.AddSingleton(Microsoft.Extensions.Options.Options.Create(this.Options));
             this.Services.AddLogging();
             this.Services.AddMediator(builder =>
             {
-                builder.ScanAssembly(typeof(SynapseApplicationBuilder).Assembly);
+                builder.ScanAssembly(typeof(ApplicationBuilder).Assembly);
                 builder.UseDefaultPipelineBehavior(typeof(DomainExceptionHandlingMiddleware<,>));
                 builder.UseDefaultPipelineBehavior(typeof(FluentValidationMiddleware<,>));
             });
@@ -136,7 +147,7 @@ namespace Synapse.Application.Configuration
             this.Services.AddSingleton<CloudEventFormatter, JsonEventFormatter>();
             this.Services.AddCloudEventBus(builder =>
             {
-                builder.WithBrokerUri(options.CloudEvents.Sink.Uri);
+                builder.WithBrokerUri(this.Options.CloudEvents.Sink.Uri);
             });
             this.Services.AddServerlessWorkflow();
             this.Services.AddSingleton<CloudEventCorrelator>();
@@ -151,7 +162,63 @@ namespace Synapse.Application.Configuration
             {
                 await provider.GetRequiredService<ICloudEventBus>().PublishAsync(e);
             });
-            this.Services.AddAuthorization();
+            this.Services.AddAuthorization(options =>
+            {
+                var schemes = new List<string>(2);
+                switch (this.Options.Authentication.Scheme)
+                {
+                    case ApplicationAuthenticationScheme.Basic:
+                        schemes.Add(BasicAuthenticationDefaults.AuthenticationScheme);
+                        break;
+                    case ApplicationAuthenticationScheme.OpenIdConnect:
+                        schemes.Add(OpenIdConnectDefaults.AuthenticationScheme);
+                        break;
+                    default:
+                        throw new NotSupportedException($"The specified {nameof(ApplicationAuthenticationScheme)} '{this.Options.Authentication.Scheme}' is not supported");
+                }
+                schemes.Add(CookieAuthenticationDefaults.AuthenticationScheme);
+                options.DefaultPolicy = new AuthorizationPolicyBuilder(schemes.ToArray())
+                    .RequireAuthenticatedUser()    
+                    .Build();
+               
+            });
+            var authenticationBuilder = this.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+                .AddCookie(options =>
+                {
+                    options.ClaimsIssuer = "Synapse";
+                    options.LoginPath = "/api/v1/user/login";
+                    options.LogoutPath = "/api/v1/user/logout";
+                    options.Cookie.SameSite = SameSiteMode.Strict;
+                    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+                });
+            this.Services.Configure<CookiePolicyOptions>(options =>
+            {
+                options.Secure = CookieSecurePolicy.Always;
+                options.MinimumSameSitePolicy = SameSiteMode.Strict;
+            });
+            switch (this.Options.Authentication.Scheme)
+            {
+                case ApplicationAuthenticationScheme.Basic:
+                    authenticationBuilder.AddBasic(options =>
+                    {
+                        this.Options.Authentication.Basic?.CopyTo(options);
+                    });
+                    break;
+                case ApplicationAuthenticationScheme.OpenIdConnect:
+                    authenticationBuilder.AddOpenIdConnect(options =>
+                    {
+                        this.Options.Authentication.OpenIdConnect?.CopyTo(options);
+                        options.NonceCookie.SecurePolicy = CookieSecurePolicy.Always;
+                        options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.Always;
+                        options.TokenValidationParameters.NameClaimType = JwtClaimTypes.Name;
+                        options.TokenValidationParameters.RoleClaimType = JwtClaimTypes.Role;
+                    });
+                    break;
+                default:
+                    throw new NotSupportedException($"The specified {nameof(ApplicationAuthenticationScheme)} '{this.Options.Authentication.Scheme}' is not supported");
+            }
+            this.Services.AddHttpContextAccessor();
+            this.Services.AddScoped<IUserAccessor, HttpContextUserAccessor>();
             this.Services.AddSingleton<IExpressionEvaluatorProvider, ExpressionEvaluatorProvider>();
             this.Services.AddSingleton<PluginManager>();
             this.Services.AddSingleton<IPluginManager>(provider => provider.GetRequiredService<PluginManager>());
@@ -160,7 +227,7 @@ namespace Synapse.Application.Configuration
             this.Services.AddRepositories(writeModelTypes, ServiceLifetime.Scoped, ApplicationModelType.WriteModel);
             this.Services.AddRepositories(readModelTypes, ServiceLifetime.Scoped, ApplicationModelType.ReadModel);
 
-            if (options.SkipCertificateValidation)
+            if (this.Options.SkipCertificateValidation)
             {
                 System.Net.ServicePointManager.ServerCertificateValidationCallback += (sender, certificate, chain, sslPolicyErrors) => true;
                 this.Services.ConfigureAll<HttpClientFactoryOptions>(options =>

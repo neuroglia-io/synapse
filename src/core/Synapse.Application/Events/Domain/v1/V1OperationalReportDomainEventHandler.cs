@@ -44,10 +44,10 @@ namespace Synapse.Application.Events.Domain
         /// <param name="mapper">The service used to map objects</param>
         /// <param name="mediator">The service used to mediate calls</param>
         /// <param name="integrationEventBus">The service used to publish <see cref="IIntegrationEvent"/>s</param>
-        /// <param name="applicationOptions">The current <see cref="SynapseApplicationOptions"/></param>
+        /// <param name="applicationOptions">The current <see cref="ApplicationOptions"/></param>
         /// <param name="operationalReports">The <see cref="IRepository"/> used to manage <see cref="V1OperationalReport"/>s</param>
         public V1OperationalReportDomainEventHandler(ILoggerFactory loggerFactory, IMapper mapper, IMediator mediator, IIntegrationEventBus integrationEventBus, 
-            IOptions<SynapseApplicationOptions> applicationOptions, IRepository<V1OperationalReport> operationalReports) 
+            IOptions<ApplicationOptions> applicationOptions, IRepository<V1OperationalReport> operationalReports) 
             : base(loggerFactory, mapper, mediator, integrationEventBus, applicationOptions)
         {
             this.OperationalReports = operationalReports;

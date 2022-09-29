@@ -41,8 +41,8 @@ namespace Synapse.Application.Services
         /// <param name="serviceProvider">The current <see cref="IServiceProvider"/></param>
         /// <param name="logger">The service used to perform logging</param>
         /// <param name="jsonSerializer">The service to serialize/deserialize to/from JSON</param>
-        /// <param name="applicationOptions">The service used to access the current <see cref="SynapseApplicationOptions"/></param>
-        public PluginManager(IServiceProvider serviceProvider, ILogger<PluginManager> logger, IJsonSerializer jsonSerializer, IOptions<SynapseApplicationOptions> applicationOptions)
+        /// <param name="applicationOptions">The service used to access the current <see cref="Configuration.ApplicationOptions"/></param>
+        public PluginManager(IServiceProvider serviceProvider, ILogger<PluginManager> logger, IJsonSerializer jsonSerializer, IOptions<ApplicationOptions> applicationOptions)
         {
             this.ServiceProvider = serviceProvider;
             this.Logger = logger;
@@ -66,9 +66,9 @@ namespace Synapse.Application.Services
         protected IJsonSerializer JsonSerializer { get; }
 
         /// <summary>
-        /// Gets the current <see cref="SynapseApplicationOptions"/>
+        /// Gets the current <see cref="Configuration.ApplicationOptions"/>
         /// </summary>
-        protected SynapseApplicationOptions ApplicationOptions { get; }
+        protected ApplicationOptions ApplicationOptions { get; }
 
         /// <summary>
         /// Gets the service used to watch the <see cref="IPlugin"/> files

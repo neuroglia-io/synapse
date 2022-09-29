@@ -16,6 +16,7 @@
  */
 
 using Microsoft.AspNetCore.OData;
+using Microsoft.IdentityModel.Logging;
 using Neuroglia.Caching;
 using Neuroglia.Data.Expressions.JQ;
 using Neuroglia.Eventing;
@@ -28,8 +29,13 @@ using Synapse.Apis.Monitoring.WebSocket;
 using Synapse.Apis.Runtime.Grpc;
 using Synapse.Application.Configuration;
 using Synapse.Runtime;
+using Synapse.Server.Controllers;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.Limits.MaxRequestHeadersTotalSize = 1048576;
+});
 builder.Services.AddLogging(builder =>
 {
     builder.AddSimpleConsole(options =>
@@ -51,12 +57,20 @@ builder.Services.AddSynapse(builder.Configuration, synapse =>
     else
         synapse.UseNativeRuntime();
 });
+builder.Services.AddControllersWithViews()
+    .AddApplicationPart(typeof(UserController).Assembly);
 builder.Services.AddJQExpressionEvaluator();
 using var app = builder.Build();
 if (app.Environment.IsDevelopment())
+{
     app.UseWebAssemblyDebugging();
+    IdentityModelEventSource.ShowPII = true;
+}
 else
+{
     app.UseExceptionHandler("/error");
+}
+   
 app.UseCloudEvents();
 app.UseBlazorFrameworkFiles();
 app.UseStaticFiles();
@@ -74,7 +88,8 @@ app.UseSwaggerUI(builder =>
     builder.SwaggerEndpoint("/api/v1/doc/oas.json", "Synapse API v1");
     builder.RoutePrefix = "api/doc";
 });
-app.MapControllers();
+app.MapControllers()
+    .RequireAuthorization();
 app.MapGrpcService<SynapseGrpcManagementApi>();
 app.MapGrpcService<SynapseGrpcRuntimeApi>();
 app.MapHub<SynapseWebSocketMonitoringApi>("/api/ws");

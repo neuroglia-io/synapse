@@ -15,34 +15,35 @@
  *
  */
 
-using AutoMapper;
+using Microsoft.AspNetCore.Authentication;
 
-namespace Synapse.Application.Configuration
+namespace Synapse.Application.Authentication
 {
 
     /// <summary>
-    /// Defines the fundamentals of a service used to build a Synapse application
+    /// Represents the options used to configure the Basic authentication scheme
     /// </summary>
-    public interface ISynapseApplicationBuilder
+    public class BasicAuthenticationOptions
+        : AuthenticationSchemeOptions
     {
 
         /// <summary>
-        /// Gets the application's <see cref="IConfiguration"/>
+        /// Initializes a new <see cref="BasicAuthenticationOptions"/>
         /// </summary>
-        IConfiguration Configuration { get; }
+        public BasicAuthenticationOptions()
+        {
+            this.ClaimsIssuer = "Synapse";
+        }
 
         /// <summary>
-        /// Gets the application's <see cref="IServiceCollection"/>
+        /// Gets/sets the username to use
         /// </summary>
-        IServiceCollection Services { get; }
+        public virtual string Username { get; set; } = null!;
 
         /// <summary>
-        /// Configures the <see cref="ISynapseApplicationBuilder"/> to use the specified <see cref="Profile"/>
+        /// Gets/sets the password to use
         /// </summary>
-        /// <typeparam name="TProfile">The type of the <see cref="Profile"/> to use</typeparam>
-        /// <returns>The configured <see cref="ISynapseApplicationBuilder"/></returns>
-        ISynapseApplicationBuilder AddMappingProfile<TProfile>()
-            where TProfile : Profile;
+        public virtual string Password { get; set; } = null!;
 
     }
 

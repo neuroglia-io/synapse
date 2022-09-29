@@ -44,11 +44,11 @@ namespace Synapse.Runtime.Kubernetes.Services
         /// </summary>
         /// <param name="loggerFactory">The service used to create <see cref="ILogger"/>s</param>
         /// <param name="environment">The current <see cref="IHostEnvironment"/></param>
-        /// <param name="applicationOptions">The service used to access the current <see cref="SynapseApplicationOptions"/></param>
+        /// <param name="applicationOptions">The service used to access the current <see cref="Application.Configuration.ApplicationOptions"/></param>
         /// <param name="options">The service used to access the current <see cref="KubernetesRuntimeOptions"/></param>
         /// <param name="kubernetes">The service used to interact with the Kubernetes API</param>
         public KubernetesRuntime(ILoggerFactory loggerFactory, IHostEnvironment environment, 
-            IOptions<SynapseApplicationOptions> applicationOptions, IOptions<KubernetesRuntimeOptions> options, IKubernetes kubernetes)
+            IOptions<ApplicationOptions> applicationOptions, IOptions<KubernetesRuntimeOptions> options, IKubernetes kubernetes)
             : base(loggerFactory)
         {
             this.Environment = environment;
@@ -63,9 +63,9 @@ namespace Synapse.Runtime.Kubernetes.Services
         protected IHostEnvironment Environment { get; }
 
         /// <summary>
-        /// Gets the current <see cref="SynapseApplicationOptions"/>
+        /// Gets the current <see cref="Application.Configuration.ApplicationOptions"/>
         /// </summary>
-        protected SynapseApplicationOptions ApplicationOptions { get; }
+        protected ApplicationOptions ApplicationOptions { get; }
 
         /// <summary>
         /// Gets the current <see cref="KubernetesRuntimeOptions"/>

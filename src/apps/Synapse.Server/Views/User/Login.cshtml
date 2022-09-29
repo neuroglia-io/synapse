@@ -1,0 +1,34 @@
+﻿@model LoginViewModel
+@{
+    Layout = "_Layout";
+    ViewBag.Title = "Login";
+}
+
+<div class="row align-items-center" style="min-height: 100vh">
+    <div class="col-md-12">
+        <div class="card mx-auto" style="max-width: 400px">
+            <div class="card-body">
+                <div class="text-center">
+                    <img height="150" src="/img/synapse-logo-black.png" class="my-3" />
+                    <h2>SYNAPSE</h2>
+                    <h7>Serverless Workflow Management System</h7>
+                </div>
+                <hr class="my-3" />
+                <form asp-controller="user" asp-action="login" asp-antiforgery="true" method="post">
+                    <div class="my-3">
+                        <input asp-for="Username" placeholder="Username" class="form-control" />
+                    </div>
+                    <div class="my-3">
+                        <input asp-for="Password" placeholder="Password" class="form-control" />
+                    </div>
+                    <div class="form-check-inline d-block text-center mb-3 ">
+                        <input asp-for="RememberMe" type="checkbox" class="form-check-input">
+                        <label class="form-check-label" for="flexCheckDefault">Remember me</label>
+                    </div>
+                    <input asp-for="ReturnUrl" type="hidden" />
+                    <button type="submit" class="btn btn-block bg-blue text-white w-100">Login</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

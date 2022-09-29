@@ -41,10 +41,10 @@ namespace Synapse.Runtime.Services
         /// </summary>
         /// <param name="loggerFactory">The service used to create <see cref="ILogger"/>s</param>
         /// <param name="environment">The current <see cref="IHostEnvironment"/></param>
-        /// <param name="applicationOptions">The service used to access the current <see cref="SynapseApplicationOptions"/></param>
+        /// <param name="applicationOptions">The service used to access the current <see cref="Application.Configuration.ApplicationOptions"/></param>
         /// <param name="options">The service used to access the current <see cref="DockerRuntimeHostOptions"/></param>
         /// <param name="docker">The service used to interact with the Docker API</param>
-        public DockerRuntime(ILoggerFactory loggerFactory, IHostEnvironment environment, IOptions<SynapseApplicationOptions> applicationOptions, IOptions<DockerRuntimeHostOptions> options, IDockerClient docker)
+        public DockerRuntime(ILoggerFactory loggerFactory, IHostEnvironment environment, IOptions<ApplicationOptions> applicationOptions, IOptions<DockerRuntimeHostOptions> options, IDockerClient docker)
             : base(loggerFactory)
         {
             this.Environment = environment;
@@ -59,9 +59,9 @@ namespace Synapse.Runtime.Services
         protected IHostEnvironment Environment { get; }
 
         /// <summary>
-        /// Gets the current <see cref="SynapseApplicationOptions"/>
+        /// Gets the current <see cref="Application.Configuration.ApplicationOptions"/>
         /// </summary>
-        protected SynapseApplicationOptions ApplicationOptions { get; }
+        protected ApplicationOptions ApplicationOptions { get; }
 
         /// <summary>
         /// Gets the current <see cref="DockerRuntimeHostOptions"/>
