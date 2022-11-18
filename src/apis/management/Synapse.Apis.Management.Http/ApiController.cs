@@ -55,4 +55,14 @@ namespace Synapse.Apis.Management.Http
 
     }
 
+    public interface IWorkflowManagementApi
+        : IManagementApiResource
+    {
+
+        Task<Integration.Models.V1Workflow> CreateAsync(Integration.Commands.Workflows.V1CreateWorkflowCommand command, CancellationToken cancellationToken = default);
+
+        Task<Integration.Models.V1Workflow> GetByIdAsync(string id, CancellationToken cancellationToken = default);
+
+    }
+
 }

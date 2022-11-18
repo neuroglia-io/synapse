@@ -23,6 +23,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\core\Synapse.Application\Synapse.Application.csproj" />
     <ProjectReference Include="..\Synapse.Apis.Management.Http.Client\Synapse.Apis.Management.Http.Client.csproj" />
+    <ProjectReference Include="..\Synapse.Apis.Management.Http.Generator\Synapse.Apis.Management.Http.Generator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="6.0.10" />

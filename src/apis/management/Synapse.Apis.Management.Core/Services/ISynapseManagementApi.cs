@@ -487,4 +487,74 @@ namespace Synapse.Apis.Management
 
     }
 
+    public interface IManagementApi
+    {
+
+        IApplicationManagementApi Application { get; }
+
+        IMetricManagementApi Metrics { get; }
+
+        IScheduleManagementApi Schedules { get; }
+
+        IWorkflowManagementApi Workflows { get; }
+
+        IWorkflowInstanceManagementApi WorkflowInstances { get; }
+
+    }
+
+    public interface IManagementApiResource
+    {
+
+
+
+    }
+
+    public interface IApplicationManagementApi
+        : IManagementApiResource
+    {
+
+
+
+    }
+
+    public interface IWorkflowManagementApi
+        : IManagementApiResource
+    {
+
+
+
+    }
+
+    public interface IWorkflowInstanceManagementApi
+        : IManagementApiResource
+    {
+
+
+
+    }
+
+    public interface ICorrelationManagementApi
+        : IManagementApiResource
+    {
+
+
+
+    }
+
+    public interface IMetricManagementApi
+        : IManagementApiResource
+    {
+
+
+
+    }
+
+    public interface IScheduleManagementApi
+        : IManagementApiResource
+    {
+
+
+
+    }
+
 }
