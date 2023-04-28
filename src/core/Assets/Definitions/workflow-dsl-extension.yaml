@@ -1,0 +1,68 @@
+﻿apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: workflow-dsl-extensions.synapse-wfms.io
+spec:
+  scope: Cluster
+  group: synapse-wfms.io
+  names:
+    kind: WorkflowDslExtension
+    singular: workflow-dsl-extension
+    plural: workflow-dsl-extensions
+    shortNames:
+      - dslx
+  versions:
+    - name: v1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              properties:
+                dsl:
+                  type: string
+                  minLength: 3
+                  maxLength: 63
+                  pattern: '^[a-z0-9]([-a-z0-9]*[a-z0-9])$'
+                versions:
+                  type: array
+                  minItems: 1
+                  items:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                        minLength: 3
+                        maxLength: 22
+                        pattern: '^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$'
+                      supportedVersions:
+                        type: array
+                        items:
+                          type: string
+                          minLength: 3
+                          maxLength: 22
+                          pattern: '^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$'
+                      schemaExtension:
+                        type: object
+                        properties:
+                          patch:
+                            type: object
+                            properties:
+                              type:
+                                type: string
+                                enum: [ 'patch', 'merge', 'strategic' ]
+                              document:
+                                type: object
+                            required:
+                              - type
+                              - document
+                        required:
+                          - patch
+                    required:
+                      - name
+              required:
+                - dsl
+                - versions

@@ -1,0 +1,42 @@
+﻿apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: workflow-dsls.synapse-wfms.io
+spec:
+  scope: Cluster
+  group: synapse-wfms.io
+  names:
+    kind: WorkflowDsl
+    singular: workflow-dsl
+    plural: workflow-dsls
+    shortNames:
+      - dsl
+  versions:
+    - name: v1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              properties:
+                versions:
+                  type: array
+                  minItems: 1
+                  items:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                        minLength: 3
+                        maxLength: 22
+                        pattern: '^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$'
+                      schema:
+                        type: object
+                    required:
+                      - name
+                      - schema
+              required:
+                - versions

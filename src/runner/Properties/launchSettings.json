@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "Synapse.Runner": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "SYNAPSE_RUNNER_NAME": "default",
+        "SYNAPSE_RUNNER_NAMESPACE": "default"
+      }
+    }
+  }
+}
