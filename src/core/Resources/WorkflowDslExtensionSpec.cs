@@ -19,6 +19,6 @@ public record WorkflowDslExtensionSpec
     /// </summary>
     [Required, MinLength(1)]
     [DataMember(Order = 2, Name = "versions", IsRequired = true), JsonPropertyOrder(2), JsonPropertyName("versions"), YamlMember(Order = 2, Alias = "versions")]
-    public virtual List<WorkflowDslExtensionVersion> Versions { get; set; } = new();
+    public virtual EquatableList<WorkflowDslExtensionVersion> Versions { get; set; } = new();
 
 }

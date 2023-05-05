@@ -19,7 +19,7 @@ public record WorkflowDslSpec
     public WorkflowDslSpec(params WorkflowDslVersion[] versions)
     {
         if (versions == null || versions.Length < 1) throw new ArgumentNullException(nameof(versions));
-        this.Versions = versions.ToList();
+        this.Versions = new(versions);
     }
 
     /// <summary>
@@ -27,6 +27,6 @@ public record WorkflowDslSpec
     /// </summary>
     [Required, MinLength(1)]
     [DataMember(Order = 1, Name = "versions", IsRequired = true), JsonPropertyOrder(1), JsonPropertyName("versions"), YamlMember(Order = 1, Alias = "versions")]
-    public virtual List<WorkflowDslVersion> Versions { get; set; } = new();
+    public virtual EquatableList<WorkflowDslVersion> Versions { get; set; } = new();
 
 }

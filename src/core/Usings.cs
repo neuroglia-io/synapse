@@ -2,6 +2,7 @@
 global using Json.Pointer;
 global using Json.Schema;
 global using Semver;
+global using Synapse.Resources;
 global using System.ComponentModel.DataAnnotations;
 global using System.Runtime.Serialization;
 global using System.Text.Json.Nodes;

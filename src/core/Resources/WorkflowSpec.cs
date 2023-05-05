@@ -23,7 +23,7 @@ public record WorkflowSpec
         if (WorkflowDsl.IsValidReference(dsl)) throw new ArgumentException($"The specified value '{dsl}' is not a valid workflow language reference", nameof(dsl));
         if(versions == null || versions.Length < 1) throw new ArgumentNullException(nameof(versions));
         this.Dsl = dsl;
-        this.Versions = versions.ToList();
+        this.Versions = new(versions);
     }
 
     /// <summary>
@@ -40,6 +40,6 @@ public record WorkflowSpec
     /// </summary>
     [Required, MinLength(1)]
     [DataMember(Order = 2, Name = "versions", IsRequired = true), JsonPropertyOrder(2), JsonPropertyName("versions"), YamlMember(Order = 2, Alias = "versions")]
-    public virtual List<WorkflowVersion> Versions { get; set; } = new();
+    public virtual EquatableList<WorkflowVersion> Versions { get; set; } = new();
 
 }

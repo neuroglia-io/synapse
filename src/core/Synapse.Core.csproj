@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
 	<RootNamespace>$(MSBuildProjectName.Replace(" ", "_").Replace(".Core", ""))</RootNamespace>
 	<GenerateDocumentationFile>True</GenerateDocumentationFile>
-	<VersionPrefix>0.01.00</VersionPrefix>
+	<VersionPrefix>0.1.0</VersionPrefix>
 	<AssemblyVersion>$(VersionPrefix)</AssemblyVersion>
 	<FileVersion>$(VersionPrefix)</FileVersion>
 	<NeutralLanguage>en</NeutralLanguage>
@@ -22,24 +22,26 @@
     <None Remove="Assets\Definitions\mutating-webhook.yaml" />
     <None Remove="Assets\Definitions\resource-definition.yaml" />
     <None Remove="Assets\Definitions\validating-webhook.yaml" />
+    <None Remove="Assets\Definitions\workflow-agent.yaml" />
     <None Remove="Assets\Definitions\workflow-dsl-extension.yaml" />
     <None Remove="Assets\Definitions\workflow-dsl.yaml" />
-    <None Remove="Assets\Definitions\workflow-process.yaml" />
+    <None Remove="Assets\Definitions\workflow-instance.yaml" />
     <None Remove="Assets\Definitions\workflow.yaml" />
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="Assets\Definitions\workflow-agent.yaml" />
     <EmbeddedResource Include="Assets\Definitions\workflow-dsl-extension.yaml" />
     <EmbeddedResource Include="Assets\Definitions\workflow-dsl.yaml" />
-    <EmbeddedResource Include="Assets\Definitions\workflow-process.yaml" />
+    <EmbeddedResource Include="Assets\Definitions\workflow-instance.yaml" />
     <EmbeddedResource Include="Assets\Definitions\workflow.yaml" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Hylo.Core" Version="0.2.0" />
+    <PackageReference Include="Hylo.Core" Version="0.4.0" />
     <PackageReference Include="JsonCons.Utilities" Version="1.0.0" />
     <PackageReference Include="JsonPatch.Net" Version="2.0.6" />
-    <PackageReference Include="JsonSchema.Net" Version="4.0.6" />
+    <PackageReference Include="JsonSchema.Net" Version="4.1.0" />
     <PackageReference Include="Semver" Version="2.3.0" />
     <PackageReference Include="System.Reactive.Linq" Version="5.0.0" />
     <PackageReference Include="YamlDotNet" Version="13.1.0" />

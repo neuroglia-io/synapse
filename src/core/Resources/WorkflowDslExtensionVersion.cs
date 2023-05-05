@@ -18,12 +18,12 @@ public record WorkflowDslExtensionVersion
     /// <param name="name">The name of the workflow DSL extension version</param>
     /// <param name="supportedVersions">A list of the DSL versions the defined extension version applies to. If null, applies to all versions of the extended DSL</param>
     /// <param name="schemaExtension">The schema extension to apply to the extended DSL, if any</param>
-    public WorkflowDslExtensionVersion(string name, List<string>? supportedVersions = null, WorkflowDslSchemaExtension? schemaExtension = null)
+    public WorkflowDslExtensionVersion(string name, IEnumerable<string>? supportedVersions = null, WorkflowDslSchemaExtension? schemaExtension = null)
     {
         if (string.IsNullOrWhiteSpace(name)) throw new ArgumentNullException(nameof(name));
         if (!SemVersion.TryParse(name, SemVersionStyles.Strict, out _)) throw new ArgumentException($"The specified value '{name}' is not a valid semantic version 2.0", nameof(name));
         this.Name = name;
-        this.SupportedVersions = supportedVersions;
+        this.SupportedVersions = supportedVersions == null ? null : new(supportedVersions);
         this.SchemaExtension = schemaExtension;
     }
 
@@ -38,7 +38,7 @@ public record WorkflowDslExtensionVersion
     /// Gets/sets a list of the DSL versions the defined extension version applies to. If null, applies to all versions of the extended DSL.
     /// </summary>
     [DataMember(Order = 2, Name = "supportedVersions"), JsonPropertyOrder(2), JsonPropertyName("supportedVersions"), YamlMember(Order = 2, Alias = "supportedVersions")]
-    public virtual List<string>? SupportedVersions { get; set; }
+    public EquatableList<string>? SupportedVersions { get; set; }
 
     /// <summary>
     /// Gets/sets the schema extension to apply to the extended DSL, if any

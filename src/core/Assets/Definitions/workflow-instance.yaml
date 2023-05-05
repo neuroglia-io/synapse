@@ -1,0 +1,137 @@
+﻿apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: workflow-instances.synapse-wfms.io
+spec:
+  scope: Namespaced
+  group: synapse-wfms.io
+  names:
+    kind: WorkflowInstance
+    singular: workflow-instance
+    plural: workflow-instances
+    shortNames:
+      - wfi
+  versions:
+    - name: v1
+      served: true
+      storage: true
+      subResources:
+        status: {}
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              properties:
+                workflow:
+                  type: string
+                  minLength: 7
+                  maxLength: 126
+                  pattern: '^[a-z0-9]([-a-z0-9]*[a-z0-9])\.[a-z0-9]([-a-z0-9]*[a-z0-9])$'
+                key:
+                  type: string
+                  minLength: 3
+                  maxLength: 63
+                  pattern: '^[a-z0-9]([-a-z0-9]*[a-z0-9])$'
+                instantiationType:
+                  type: string
+                  enum: [ 'manual', 'parent', 'trigger', 'schedule' ]
+                parent:
+                  type: string
+                  minLength: 7
+                  maxLength: 126
+                  pattern: '^[a-z0-9]([-a-z0-9]*[a-z0-9])\.[a-z0-9]([-a-z0-9]*[a-z0-9])$'
+                inputData:
+                  type: string
+              required: [ 'workflow', 'key', 'instantiationType']
+            status:
+              type: object
+              properties:
+                phase:
+                  type: string
+                  minLength: 3
+                  maxLength: 22
+                  pattern: '^[a-z0-9]([-a-z0-9]*[a-z0-9])$'
+                  enum: [ 'pending', 'running', 'suspended', 'faulted', 'cancelled', 'executed' ]
+                runner:
+                  type: string
+                  minLength: 7
+                  maxLength: 126
+                  pattern: '^[a-z0-9]([-a-z0-9]*[a-z0-9])\.[a-z0-9]([-a-z0-9]*[a-z0-9])$'
+                activities:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      metadata:
+                        type: object
+                        properties:
+                          name:
+                            type: string
+                            minLength: 3
+                            maxLength: 63
+                            pattern: '^[a-z0-9]([-a-z0-9]*[a-z0-9])$'
+                          type:
+                            type: string
+                            minLength: 3
+                            maxLength: 22
+                            pattern: '^[a-z0-9]([-a-z0-9]*[a-z0-9])$'
+                          definition:
+                            type: string
+                        required: [ 'name', 'type', 'definition']
+                      spec:
+                        type: object
+                        properties:
+                          parameters:
+                            type: object
+                      status:
+                        type: object
+                        properties:
+                          phase:
+                            type: string
+                            minLength: 3
+                            maxLength: 22
+                            pattern: '^[a-z0-9]([-a-z0-9]*[a-z0-9])$'
+                            enum: [ 'pending', 'running', 'suspended', 'faulted', 'cancelled', 'executed' ]
+                          error:
+                            type: object
+                            properties:
+                              type:
+                                type: string
+                              title:
+                                type: string
+                              status:
+                                type: integer
+                              detail:
+                                type: string
+                              instance:
+                                type: string
+                              errors:
+                                type: object
+                            required: [ 'type', 'title', 'status' ]
+                          outputData:
+                            type: string
+                        required:
+                          - phase
+                    required: [ 'metadata', 'spec', 'status']
+                error:
+                  type: object
+                  properties:
+                    type:
+                      type: string
+                    title:
+                      type: string
+                    status:
+                      type: integer
+                    detail:
+                      type: string
+                    instance:
+                      type: string
+                    errors:
+                      type: object
+                  required: [ 'type', 'title', 'status' ]
+                outputData:
+                  type: string
+              required:
+                - phase

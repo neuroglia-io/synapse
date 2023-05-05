@@ -1,0 +1,36 @@
+﻿apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: agents.synapse-wfms.io
+spec:
+  scope: Namespaced
+  group: synapse-wfms.io
+  names:
+    kind: WorkflowAgent
+    singular: workflow-agent
+    plural: workflow-agents
+    shortNames:
+      - wfa
+      - agent
+  versions:
+    - name: v1
+      served: true
+      storage: true
+      subResources:
+        status: {}
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              properties:
+                supportedDsls:
+                  type: array
+                  uniqueItems: true
+                  minItems: 1
+                  items:
+                    type: string
+              required: [ 'supportedDsls' ]
+            status:
+              type: object
