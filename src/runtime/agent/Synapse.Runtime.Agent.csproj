@@ -20,14 +20,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Hylo.Providers.FileSystem" Version="0.5.0" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="7.0.5" />
-    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.17.2" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.18.1" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
     <PackageReference Include="System.Linq.Async" Version="6.0.1" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\plugins\management\Synapse.Plugins.Management.csproj" />
+    <ProjectReference Include="..\..\infrastructure\Synapse.Infrastructure.csproj" />
     <ProjectReference Include="..\process-management\abstractions\Synapse.Runtime.ProcessManagement.Abstractions.csproj" />
   </ItemGroup>
 

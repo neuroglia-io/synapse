@@ -14,7 +14,7 @@ using System.Runtime.Loader;
 using System.Runtime.Versioning;
 using System.Text.Json;
 
-namespace Synapse.Plugins.Management.Services;
+namespace Synapse.Plugins.Services;
 
 /// <summary>
 /// Represents the default implementation of the <see cref="IPluginManager"/> interface
@@ -43,30 +43,44 @@ public class PluginManager
     protected DirectoryInfo PluginsDirectory { get; } = new DirectoryInfo(Path.Combine(AppContext.BaseDirectory, "plugins"));
 
     /// <summary>
-    /// Gets a <see cref="ConcurrentDictionary{TKey, TValue}"/>
+    /// Gets a <see cref="ConcurrentBag{T}"/>
     /// </summary>
-    protected ConcurrentDictionary<string, PluginMetadata> AvailablePlugins { get; } = new();
+    protected ConcurrentBag<PluginMetadata> AvailablePlugins { get; } = new();
+
+    /// <summary>
+    /// Gets the <see cref="PluginManager"/>'s <see cref="System.Threading.CancellationTokenSource"/>
+    /// </summary>
+    protected CancellationTokenSource CancellationTokenSource { get; private set; } = null!;
 
     /// <inheritdoc/>
     public virtual async Task StartAsync(CancellationToken cancellationToken)
     {
+        this.CancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         if (!this.PluginsDirectory.Exists) this.PluginsDirectory.Create();
         foreach(var pluginFile in this.PluginsDirectory.GetFiles("plugin.json", SearchOption.AllDirectories))
         {
-            var json = await File.ReadAllTextAsync(pluginFile.FullName, cancellationToken).ConfigureAwait(false);
+            var json = await File.ReadAllTextAsync(pluginFile.FullName, this.CancellationTokenSource.Token).ConfigureAwait(false);
             var pluginMetadata = JsonSerializer.Deserialize<PluginMetadata>(json)!;
-            if (!string.IsNullOrWhiteSpace(pluginMetadata.NugetPackage)) await this.DownloadAndExtractNugetPackageAsync(pluginMetadata.NugetPackage, cancellationToken).ConfigureAwait(false);
+            if (!string.IsNullOrWhiteSpace(pluginMetadata.NugetPackage)) await this.DownloadAndExtractNugetPackageAsync(pluginMetadata.NugetPackage, this.CancellationTokenSource.Token).ConfigureAwait(false);
+            this.AvailablePlugins.Add(pluginMetadata);
         }
         foreach (var assemblyFile in this.PluginsDirectory.GetFiles("*.dll", SearchOption.AllDirectories))
         {
-            var assemblyFiles = new List<string>(Directory.GetFiles(RuntimeEnvironment.GetRuntimeDirectory(), "*.dll")) { assemblyFile.FullName };
-            assemblyFiles.AddRange(AssemblyLoadContext.Default.Assemblies.Select(a => a.Location));
+            var runtimeAssemblies = Directory.GetFiles(RuntimeEnvironment.GetRuntimeDirectory(), "*.dll");
+            var defaultAssemblies = AssemblyLoadContext.Default.Assemblies.Select(a => a.Location).Except(runtimeAssemblies);
+            var appAssemblies = new FileInfo(typeof(PluginManager).Assembly.Location).Directory!.GetFiles("*.dll").Select(f => f.FullName).Except(runtimeAssemblies).Except(defaultAssemblies);
+            var assemblyFiles = new List<string>(runtimeAssemblies) { assemblyFile.FullName };
+            assemblyFiles.AddRange(defaultAssemblies);
+            assemblyFiles.AddRange(appAssemblies);
             var resolver = new PathAssemblyResolver(assemblyFiles);
             using var metadataContext = new MetadataLoadContext(resolver);
             var assembly = metadataContext.LoadFromAssemblyPath(assemblyFile.FullName);
             foreach (var type in assembly.GetTypes().Where(t => t.IsClass && !t.IsInterface && !t.IsAbstract && !t.IsGenericType))
             {
-
+                var pluginAttribute = type.GetCustomAttributesData().FirstOrDefault(a => a.AttributeType.FullName == typeof(PluginAttribute).FullName);
+                if (pluginAttribute == null) continue;
+                var pluginMetadata = PluginMetadata.FromType(type);
+                this.AvailablePlugins.Add(pluginMetadata);
             }
         }
     }
@@ -75,20 +89,10 @@ public class PluginManager
     public async IAsyncEnumerable<TContract> FindPluginsAsync<TContract>([EnumeratorCancellation] CancellationToken cancellationToken = default) 
         where TContract : class
     {
-        foreach (var assemblyFile in this.PluginsDirectory.GetFiles("*.dll", SearchOption.AllDirectories))
+        foreach(var metadata in this.AvailablePlugins.Where(m => m.TypeName == typeof(TContract).FullName!).ToList())
         {
-            var assemblyFiles = new List<string>(Directory.GetFiles(RuntimeEnvironment.GetRuntimeDirectory(), "*.dll")) { assemblyFile.FullName };
-            assemblyFiles.AddRange(AssemblyLoadContext.Default.Assemblies.Select(a => a.Location));
-            var resolver = new PathAssemblyResolver(assemblyFiles);
-            using var metadataContext = new MetadataLoadContext(resolver);
-            var assembly = metadataContext.LoadFromAssemblyPath(assemblyFile.FullName);
-            foreach (var type in assembly.GetTypes().Where(t => t.IsClass && !t.IsInterface && !t.IsAbstract && !t.IsGenericType))
-            {
-                var pluginAttribute = type.GetCustomAttributesData().FirstOrDefault(a => a.AttributeType.FullName == typeof(PluginAttribute).FullName);
-                if (pluginAttribute == null) continue;
-                var plugin = new Plugin(this.ServiceProvider, PluginMetadata.FromType(type));
-                yield return await plugin.LoadAsync<TContract>(cancellationToken).ConfigureAwait(false);
-            }
+            var plugin = new Plugin(this.ServiceProvider, metadata);
+            yield return await plugin.LoadAsync<TContract>(cancellationToken).ConfigureAwait(false);
         }
     }
 

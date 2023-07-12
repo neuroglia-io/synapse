@@ -16,9 +16,9 @@ public record WorkflowAgentSpec
     /// Initializes a new <see cref="WorkflowAgentSpec"/>
     /// </summary>
     /// <param name="processRules">A set of rules that define which workflow instances to run and how</param>
-    public WorkflowAgentSpec(List<WorkflowAgentProcessRule> processRules)
+    public WorkflowAgentSpec(params WorkflowAgentProcessRule[] processRules)
     {
-        if(processRules == null || processRules.Count < 1) throw new ArgumentNullException(nameof(processRules));
+        if(processRules == null || !processRules.Any()) throw new ArgumentNullException(nameof(processRules));
         this.ProcessRules = new(processRules);
     }
 

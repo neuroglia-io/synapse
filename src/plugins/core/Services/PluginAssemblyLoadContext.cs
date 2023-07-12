@@ -1,7 +1,7 @@
 ﻿using System.Reflection;
 using System.Runtime.Loader;
 
-namespace Synapse.Plugins.Management.Services;
+namespace Synapse.Plugins.Services;
 
 /// <summary>
 /// Represents an <see cref="AssemblyLoadContext"/> used to load <see cref="IPlugin"/> assemblies
@@ -17,7 +17,7 @@ public class PluginAssemblyLoadContext
     public PluginAssemblyLoadContext(AssemblyDependencyResolver assemblyDependencyResolver)
         : base("PluginAssemblyLoadContext", true)
     {
-        this.AssemblyDependencyResolver = assemblyDependencyResolver;
+        this.AssemblyDependencyResolver = assemblyDependencyResolver ?? throw new ArgumentNullException(nameof(assemblyDependencyResolver));
     }
 
     /// <summary>
@@ -44,11 +44,9 @@ public class PluginAssemblyLoadContext
     protected override Assembly? Load(AssemblyName assemblyName)
     {
         var assembly = Default.Assemblies.FirstOrDefault(a => a.FullName == assemblyName.FullName);
-        if (assembly != null)
-            return assembly;
+        if (assembly != null) return assembly;
         var assemblyPath = this.AssemblyDependencyResolver.ResolveAssemblyToPath(assemblyName);
-        if (string.IsNullOrWhiteSpace(assemblyPath))
-            return null;
+        if (string.IsNullOrWhiteSpace(assemblyPath)) return null;
         return this.LoadFromAssemblyPath(assemblyPath);
     }
 
@@ -56,8 +54,7 @@ public class PluginAssemblyLoadContext
     protected override IntPtr LoadUnmanagedDll(string unmanagedDllName)
     {
         var assemblyPath = this.AssemblyDependencyResolver.ResolveUnmanagedDllToPath(unmanagedDllName);
-        if (string.IsNullOrWhiteSpace(assemblyPath))
-            return IntPtr.Zero;
+        if (string.IsNullOrWhiteSpace(assemblyPath)) return IntPtr.Zero;
         return this.LoadUnmanagedDllFromPath(assemblyPath);
     }
 

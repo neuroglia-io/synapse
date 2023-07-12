@@ -1,6 +1,6 @@
 ﻿using Synapse.Plugins.Skd;
 
-namespace Synapse.Plugins.Management.Services;
+namespace Synapse.Plugins.Services;
 
 /// <summary>
 /// Defines the fundamentals of a service used to describe and manage an <see cref="IPlugin"/>

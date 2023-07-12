@@ -23,7 +23,12 @@ public record WorkflowAgentProcessRule
     {
         if (string.IsNullOrWhiteSpace(name)) throw new ArgumentNullException(nameof(name));
         if (supportedLanguages == null || !supportedLanguages.Any()) throw new ArgumentNullException(nameof(supportedLanguages));
-        supportedLanguages.All(l => (l.Length < 7 || l.Length > 126 || !l.IsAlphanumeric('-', '.') || l.Split('.').Length != 2) ? throw new ArgumentException($"The specified value '{l}' is not a valid versioned DSL reference", nameof(supportedLanguages)) : true);
+        supportedLanguages.ToList().ForEach(dslReference =>
+        {
+            if (dslReference.Length < 7 || dslReference.Length > 126 || !dslReference.IsAlphanumeric('-', '.', ':') || dslReference.Split(':').Length != 2) 
+                throw new ArgumentException($"The specified value '{dslReference}' is not a valid versioned DSL reference", nameof(supportedLanguages));
+        });
+
         this.Name = name;
         this.SupportedLanguages = new(supportedLanguages);
         this.Selectors = selectors == null ? null : new(selectors);

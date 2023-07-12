@@ -28,7 +28,7 @@ public record WorkflowInstance
     /// <summary>
     /// Gets the <see cref="WorkflowInstance"/>'s resource type.
     /// </summary>
-    public static ResourceDefinition ResourceDefinition { get; set; } = Hylo.Serializer.Yaml.Deserialize<ResourceDefinition>(EmbeddedResources.ReadToEnd(EmbeddedResources.Assets.Definitions.WorkflowProcess))!;
+    public static ResourceDefinition ResourceDefinition { get; set; } = Hylo.Serializer.Yaml.Deserialize<ResourceDefinition>(EmbeddedResources.ReadToEnd(EmbeddedResources.Assets.Definitions.WorkflowInstance))!;
 
     /// <summary>
     /// Initializes a new <see cref="WorkflowInstance"/>

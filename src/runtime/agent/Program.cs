@@ -1,9 +1,22 @@
-using Synapse.Plugins.Management.Services;
-using Synapse.Runtime.ProcessManagement.Services;
+using Hylo.Infrastructure;
+using Hylo.Providers.FileSystem;
+using Synapse.Runtime.Agent.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddSingleton<IPluginManager, PluginManager>();
+builder.Services.AddSingleton<Synapse.Plugins.Services.PluginManager>();
+builder.Services.AddSingleton<Synapse.Plugins.Services.IPluginManager>(provider => provider.GetRequiredService<Synapse.Plugins.Services.PluginManager>());
+builder.Services.AddHostedService(provider => provider.GetRequiredService<Synapse.Plugins.Services.PluginManager>());
+
+builder.Services.AddLogging();
+builder.Services.AddHttpClient();
+builder.Services.AddHylo(builder.Configuration, builder =>
+{
+    builder.UseFileSystem();
+    builder.UseDatabaseInitializer<DatabaseInitializer>();
+});
+
+builder.Services.AddHostedService<WorkflowInstanceManager>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -16,12 +29,21 @@ app.UseSwaggerUI();
 app.UseAuthorization();
 app.MapControllers();
 
-var pluginsDirectory = Path.Combine(AppContext.BaseDirectory, "plugins");
-var pluginManager = app.Services.GetRequiredService<IPluginManager>();
-var plugin = await pluginManager.FindPluginsAsync<IProcessManager>().FirstOrDefaultAsync().ConfigureAwait(false) ?? throw new NullReferenceException($"Failed to find a valid workflow process manager plugin, required when using the '{nameof(PluginProcessManager)}'");
-var process = await plugin.CreateProcessAsync(new() { Target = "jq" }).ConfigureAwait(false);
-await process.StartAsync().ConfigureAwait(false);
-
-await Task.Delay(2000);
-
 app.Run();
+
+public class DatabaseInitializer
+    : Synapse.Infrastructure.Services.DatabaseInitializer
+{
+
+    /// <inheritdoc/>
+    public DatabaseInitializer(IDatabase database) : base(database) { }
+
+    /// <inheritdoc/>
+    protected override async Task SeedAsync(CancellationToken cancellationToken)
+    {
+        await base.SeedAsync(cancellationToken);
+
+        await this.Database.CreateResourceAsync(new WorkflowAgent(new ResourceMetadata(Environment.GetEnvironmentVariable("SYNAPSE_AGENT_NAME")!, Environment.GetEnvironmentVariable("SYNAPSE_AGENT_NAMESPACE")!), new WorkflowAgentSpec(new WorkflowAgentProcessRule[] { new("resource-controller", new string[] { "serverless-workflow:0.8" }, new()) } )), cancellationToken: cancellationToken).ConfigureAwait(false);//todo: urgent: remove
+    }
+
+}

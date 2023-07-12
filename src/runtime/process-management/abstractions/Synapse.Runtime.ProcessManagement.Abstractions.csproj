@@ -25,7 +25,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\core\Synapse.Core.csproj" />
-    <ProjectReference Include="..\..\..\plugins\management\Synapse.Plugins.Management.csproj" />
+    <ProjectReference Include="..\..\..\plugins\core\Synapse.Plugins.Core.csproj" />
   </ItemGroup>
 
 </Project>

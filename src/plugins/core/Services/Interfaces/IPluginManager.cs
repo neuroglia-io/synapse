@@ -1,4 +1,4 @@
-﻿namespace Synapse.Plugins.Management.Services;
+﻿namespace Synapse.Plugins.Services;
 
 /// <summary>
 /// Defines the fundamentals of a service used to manage <see cref="IPlugin"/>s

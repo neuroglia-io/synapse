@@ -4,7 +4,7 @@ using Synapse.Plugins.Skd;
 using System.Reflection;
 using System.Runtime.Loader;
 
-namespace Synapse.Plugins.Management.Services;
+namespace Synapse.Plugins.Services;
 
 /// <summary>
 /// Represents the default implementation of the <see cref="IPlugin"/> interface

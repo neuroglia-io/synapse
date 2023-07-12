@@ -1,6 +1,6 @@
-﻿using Synapse.Plugins.Management.Services;
+﻿using Synapse.Plugins.Services;
 
-namespace Synapse.Plugins.Management;
+namespace Synapse.Plugins;
 
 /// <summary>
 /// Defines extensions for <see cref="IPluginManager"/>s

@@ -28,7 +28,7 @@ public record WorkflowAgent
     /// <summary>
     /// Gets the <see cref="WorkflowAgent"/>'s resource type.
     /// </summary>
-    public static ResourceDefinition ResourceDefinition { get; set; } = Hylo.Serializer.Yaml.Deserialize<ResourceDefinition>(EmbeddedResources.ReadToEnd(EmbeddedResources.Assets.Definitions.WorkflowRunner))!;
+    public static ResourceDefinition ResourceDefinition { get; set; } = Hylo.Serializer.Yaml.Deserialize<ResourceDefinition>(EmbeddedResources.ReadToEnd(EmbeddedResources.Assets.Definitions.WorkflowAgent))!;
 
     /// <summary>
     /// Initializes a new <see cref="WorkflowAgent"/>

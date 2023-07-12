@@ -50,13 +50,13 @@ public static class EmbeddedResources
             /// </summary>
             public static readonly string Workflow = $"{Prefix}workflow.yaml";
             /// <summary>
-            /// Gets the definition of workflow processes
+            /// Gets the definition of workflow instances
             /// </summary>
-            public static readonly string WorkflowProcess = $"{Prefix}workflow-process.yaml";
+            public static readonly string WorkflowInstance = $"{Prefix}workflow-instance.yaml";
             /// <summary>
-            /// Gets the definition of workflow runners
+            /// Gets the definition of workflow agents
             /// </summary>
-            public static readonly string WorkflowRunner = $"{Prefix}workflow-runner.yaml";
+            public static readonly string WorkflowAgent = $"{Prefix}workflow-agent.yaml";
 
         }
 

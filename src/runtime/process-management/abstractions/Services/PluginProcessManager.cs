@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Synapse.Plugins.Management.Services;
+using Synapse.Plugins.Services;
 using Synapse.Resources;
 
 namespace Synapse.Runtime.ProcessManagement.Services;
