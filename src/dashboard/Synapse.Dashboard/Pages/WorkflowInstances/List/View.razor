@@ -25,7 +25,9 @@
                 <th class="sticky-header text-center">Ended At</th>
                 <th class="sticky-header text-center">Duration</th>
                 <th class="sticky-header text-center">Operator</th>
-                <th class="sticky-header text-end"></th>
+                <th class="sticky-header text-end">
+                    <Button Outline="true" Size="Size.Small" Color="ButtonColor.Primary" @onclick="async _ => await OnShowResourceEditorAsync()"><Icon Name="IconName.Plus" /></Button>
+                </th>
             </tr>
         </thead>
         <tbody>
@@ -61,8 +63,6 @@
         </tbody>
     </table>
 </div>
-
-<Button Outline="true" Color="ButtonColor.Primary" @onclick="async _ => await OnShowResourceEditorAsync()"><Icon Name="IconName.Plus" /></Button>
 
 <Offcanvas @ref="DetailsOffCanvas" Size="OffcanvasSize.Large" UseStaticBackdrop="false" BodyCssClass="d-flex flex-column" />
 

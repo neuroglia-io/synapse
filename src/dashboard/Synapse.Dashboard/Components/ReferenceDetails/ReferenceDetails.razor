@@ -1,0 +1,28 @@
+﻿@namespace Synapse.Dashboard.Components
+@using Synapse.Dashboard.Components.ReferenceDetailsStateManagement
+@inherits StatefulComponent<ReferenceDetailsStore, ReferenceDetailsState>
+@inject Synapse.Api.Client.Services.ISynapseApiClient Api
+@inject IJsonSerializer Serializer
+
+<Accordion Flush="true" OnShowing="OnShowingAsync">
+    <AccordionItem Title="Accordion Item #1" Name="AccordionItem1">
+        <Content>
+            @content
+        </Content>
+    </AccordionItem>
+</Accordion>
+
+@code {
+    [Parameter] public WorkflowInstance? WorkflowInstance { get; set; }
+
+    string content = "";
+
+    async Task OnShowingAsync(AccordionEventArgs args)
+    {
+        if (string.IsNullOrWhiteSpace(this.WorkflowInstance?.Status?.OutputReference)) return;
+        var document = await this.Api.WorkflowData.GetAsync(this.WorkflowInstance.Status.OutputReference);
+        var json = this.Serializer.SerializeToText(document.Content);
+        this.content = json;
+        this.StateHasChanged();
+    }
+}

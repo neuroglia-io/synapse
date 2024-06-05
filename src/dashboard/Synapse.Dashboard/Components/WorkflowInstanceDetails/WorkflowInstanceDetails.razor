@@ -5,6 +5,8 @@
 @inject IJsonSerializer Serializer
 
 @namespace Synapse.Dashboard.Components
+@using Synapse.Dashboard.Components.WorkflowInstanceDetailsStateManagement
+@inherits StatefulComponent<WorkflowInstanceDetailsStore, WorkflowInstanceDetailsState>
 
 <div class="card mb-3">
     <h5 class="card-header">Metadata</h5>
@@ -72,6 +74,11 @@
                     <td><a href="#" @onclick:preventDefault>Load</a></td>
                 </tr>
                 <tr>
+                    <td>
+                        <ReferenceDetails WorkflowInstance="workflowInstance"></ReferenceDetails>
+                    </td>
+                </tr>
+@*                 <tr>
                     <td>Output</td>
                     <td><a href="#" @onclick="LoadOutputAsync" @onclick:preventDefault>Load</a></td>
                 </tr>
@@ -84,7 +91,7 @@
                                               OnDidChangeModelContent="OnTextBasedValueChangedAsync"
                                               CssClass="h-100-px" />
                     </td>
-                </tr>
+                </tr> *@
                 <tr>
                     <td>Error</td>
                     <td>@workflowInstance.Status?.Error</td>
