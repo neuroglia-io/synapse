@@ -1,28 +1,93 @@
 ﻿@namespace Synapse.Dashboard.Components
 @using Synapse.Dashboard.Components.ReferenceDetailsStateManagement
 @inherits StatefulComponent<ReferenceDetailsStore, ReferenceDetailsState>
+@inject IMonacoEditorHelper MonacoEditorHelper
 @inject Synapse.Api.Client.Services.ISynapseApiClient Api
 @inject IJsonSerializer Serializer
 
 <Accordion Flush="true" OnShowing="OnShowingAsync">
-    <AccordionItem Title="Accordion Item #1" Name="AccordionItem1">
+    <AccordionItem Title="@label" Name="AccordionItem1">
         <Content>
-            @content
+            @if (loading)
+            {
+                <Spinner Type="SpinnerType.Dots" Class="me-3" Color="SpinnerColor.Primary" />
+            }
+            else
+            {
+                <PreferredLanguageSelector PreferedLanguageChange="Store.ToggleTextBasedEditorLanguageAsync" />
+                <StandaloneCodeEditor @ref="TextBasedEditor"
+                                      ConstructionOptions="MonacoEditorHelper.GetStandaloneEditorConstructionOptions(string.Empty, true, this.MonacoEditorHelper.PreferredLanguage)"
+                                      OnDidInit="Store.OnTextBasedEditorInitAsync"
+                                      CssClass="h-100-px" />
+            }
         </Content>
     </AccordionItem>
 </Accordion>
 
 @code {
-    [Parameter] public WorkflowInstance? WorkflowInstance { get; set; }
+    [Parameter] public string Label { get; set; } = null!;
+    [Parameter] public string Reference { get; set; } = null!;
 
-    string content = "";
 
+    private StandaloneCodeEditor TextBasedEditor
+    {
+        get
+        {
+            return this.textEditor;
+        }
+        set
+        {
+            this.Store.SetTextEditor(value);
+        }
+    }
+    private StandaloneCodeEditor textEditor = null!;
+    private string label = "";
+    private string reference = "";
+    private bool loading = false;
+
+    /// <inheritdoc/>
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync().ConfigureAwait(false);
+        this.Store.Label.Subscribe(partitionType => this.OnStateChanged(cmp => cmp.label = label), token: this.CancellationTokenSource.Token);
+        this.Store.Reference.Subscribe(partitionType => this.OnStateChanged(cmp => cmp.reference = reference), token: this.CancellationTokenSource.Token);
+        this.Store.Loading.Subscribe(partitionType => this.OnStateChanged(cmp =>
+        {
+            cmp.loading = !cmp.loading;
+        }), token: this.CancellationTokenSource.Token);
+        this.Store.TextEditor.Subscribe(partitionType => this.OnStateChanged(cmp => cmp.textEditor = textEditor), token: this.CancellationTokenSource.Token);
+    }
+
+    /// <inheritdoc/>
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        if (this.label != this.Label)
+        {
+            this.Store.SetLabel(this.Label);
+        }
+        if (this.reference != this.Reference)
+        {
+            this.Store.SetReference(this.Reference);
+        }
+    }
+
+    /// <summary>
+    /// Patches the <see cref="ReferenceDetails"/>'s fields after a <see cref="ReferenceDetailsStore"/>'s change
+    /// </summary>
+    /// <param name="patch">The patch to apply</param>
+    private void OnStateChanged(Action<ReferenceDetails> patch)
+    {
+        patch(this);
+        this.StateHasChanged();
+    }
+
+    /// <summary>
+    /// Handles OnShowing event
+    /// </summary>
+    /// <param name="args"></param>
     async Task OnShowingAsync(AccordionEventArgs args)
     {
-        if (string.IsNullOrWhiteSpace(this.WorkflowInstance?.Status?.OutputReference)) return;
-        var document = await this.Api.WorkflowData.GetAsync(this.WorkflowInstance.Status.OutputReference);
-        var json = this.Serializer.SerializeToText(document.Content);
-        this.content = json;
-        this.StateHasChanged();
+        await this.Store.LoadReferencedDocument();
     }
 }

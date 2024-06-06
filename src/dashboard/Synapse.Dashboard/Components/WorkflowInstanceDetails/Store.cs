@@ -25,7 +25,7 @@ public class WorkflowInstanceDetailsStore()
     /// <summary>
     /// Gets an <see cref="IObservable{T}"/> used to observe <see cref="WorkflowInstance"/> changes
     /// </summary>
-    public IObservable<WorkflowInstance?> WorkflowInstancr => this.Select(state => state.WorkflowInstance).DistinctUntilChanged();
+    public IObservable<WorkflowInstance?> WorkflowInstance => this.Select(state => state.WorkflowInstance).DistinctUntilChanged();
 
     /// <summary>
     /// Sets the state's <see cref="WorkflowInstanceDetailsState.WorkflowInstance"/>

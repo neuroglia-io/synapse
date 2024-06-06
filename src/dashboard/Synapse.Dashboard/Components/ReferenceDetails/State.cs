@@ -37,10 +37,15 @@ public record ReferenceDetailsState
     /// <summary>
     /// Gets/sets a boolean indicating the reference is being loaded
     /// </summary>
-    public bool Loading { get; set; } = false;
+    public bool Loading { get; set; } = true;
 
     /// <summary>
     /// Gets/sets the <see cref="StandaloneCodeEditor"/> used to display the referenced document
     /// </summary>
-    public StandaloneCodeEditor TextEditor { get; set; } = null!;
+    public StandaloneCodeEditor? TextEditor { get; set; } = null;
+
+    /// <summary>
+    /// Gets/sets the <see cref="TextModel"/> used by the <see cref="StandaloneCodeEditor"/>
+    /// </summary>
+    public TextModel? TextModel { get; set; } = null;
 }
