@@ -11,9 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using BlazorMonaco.Editor;
-using Synapse.Dashboard.Components.WorkflowInstanceDetailsStateManagement;
-using Synapse.Resources;
+using Synapse.Dashboard.Components.ResourceEditorStateManagement;
 
 namespace Synapse.Dashboard.Components.ReferenceDetailsStateManagement;
 
@@ -23,40 +21,89 @@ namespace Synapse.Dashboard.Components.ReferenceDetailsStateManagement;
 /// <param name="api">The service used interact with Synapse API</param>
 /// <param name="jsRuntime">The service used from JS interop</param>
 /// <param name="monacoEditorHelper">The service used ease Monaco Editor interactions</param>
-/// <param name="serializer">The service used to serialize and deserialize JSON</param>
+/// <param name="jsonSerializer">The service used to serialize and deserialize JSON</param>
+/// <param name="yamlSerializer">The service used to serialize and deserialize YAML</param>
 public class ReferenceDetailsStore(
     Api.Client.Services.ISynapseApiClient api,
     IJSRuntime jsRuntime,
     IMonacoEditorHelper monacoEditorHelper,
-    IJsonSerializer serializer
+    IJsonSerializer jsonSerializer,
+    IYamlSerializer yamlSerializer
 )
     : ComponentStore<ReferenceDetailsState>(new())
 {
+    #region Selectors
     /// <summary>
     /// Gets an <see cref="IObservable{T}"/> used to observe <see cref="ReferenceDetailsState.Label"/> changes
     /// </summary>
-    public IObservable<string?> Label => this.Select(state => state.Label).DistinctUntilChanged();
+    public IObservable<string> Label => this.Select(state => state.Label).DistinctUntilChanged();
 
     /// <summary>
     /// Gets an <see cref="IObservable{T}"/> used to observe <see cref="ReferenceDetailsState.Reference"/> changes
     /// </summary>
-    public IObservable<string?> Reference => this.Select(state => state.Reference).DistinctUntilChanged();
+    public IObservable<string> Reference => this.Select(state => state.Reference).DistinctUntilChanged();
 
     /// <summary>
     /// Gets an <see cref="IObservable{T}"/> used to observe <see cref="ReferenceDetailsState.Document"/> changes
     /// </summary>
-    public IObservable<string?> Document => this.Select(state => state.Document).DistinctUntilChanged();
+    public IObservable<string> Document => this.Select(state => state.Document).DistinctUntilChanged();
 
     /// <summary>
-    /// Gets an <see cref="IObservable{T}"/> used to observe <see cref="ReferenceDetailsState.Loading"/> changes
+    /// Gets an <see cref="IObservable{T}"/> used to observe <see cref="ReferenceDetailsState.Loaded"/> changes
     /// </summary>
-    public IObservable<bool> Loading => this.Select(state => state.Loading).DistinctUntilChanged();
+    public IObservable<bool> Loaded => this.Select(state => state.Loaded).DistinctUntilChanged();
 
     /// <summary>
     /// Gets an <see cref="IObservable{T}"/> used to observe <see cref="ReferenceDetailsState.TextEditor"/> changes
     /// </summary>
-    public IObservable<StandaloneCodeEditor> TextEditor => this.Select(state => state.TextEditor).DistinctUntilChanged();
+    public IObservable<StandaloneCodeEditor?> TextEditor => this.Select(state => state.TextEditor).DistinctUntilChanged();
 
+    /// <summary>
+    /// Gets an <see cref="IObservable{T}"/> used to observe <see cref="ResourceEditorState{TResource}.ProblemType"/> changes
+    /// </summary>
+    public IObservable<Uri?> ProblemType => this.Select(state => state.ProblemType).DistinctUntilChanged();
+
+    /// <summary>
+    /// Gets an <see cref="IObservable{T}"/> used to observe <see cref="ResourceEditorState{TResource}.ProblemTitle"/> changes
+    /// </summary>
+    public IObservable<string> ProblemTitle => this.Select(state => state.ProblemTitle).DistinctUntilChanged();
+
+    /// <summary>
+    /// Gets an <see cref="IObservable{T}"/> used to observe <see cref="ResourceEditorState{TResource}.ProblemDetail"/> changes
+    /// </summary>
+    public IObservable<string> ProblemDetail => this.Select(state => state.ProblemDetail).DistinctUntilChanged();
+
+    /// <summary>
+    /// Gets an <see cref="IObservable{T}"/> used to observe <see cref="ResourceEditorState{TResource}.ProblemStatus"/> changes
+    /// </summary>
+    public IObservable<int> ProblemStatus => this.Select(state => state.ProblemStatus).DistinctUntilChanged();
+
+    /// <summary>
+    /// Gets an <see cref="IObservable{T}"/> used to observe <see cref="ResourceEditorState{TResource}.ProblemErrors"/> changes
+    /// </summary>
+    public IObservable<IDictionary<string, string[]>> ProblemErrors => this.Select(state => state.ProblemErrors).DistinctUntilChanged();
+
+    /// <summary>
+    /// Gets an <see cref="IObservable{T}"/> used to observe computed <see cref="Neuroglia.ProblemDetails"/>
+    /// </summary>
+    public IObservable<ProblemDetails?> ProblemDetails => Observable.CombineLatest(
+        this.ProblemType,
+        this.ProblemTitle,
+        this.ProblemStatus,
+        this.ProblemDetail,
+        this.ProblemErrors,
+        (type, title, status, details, errors) =>
+        {
+            if (string.IsNullOrWhiteSpace(title))
+            {
+                return null;
+            }
+            return new ProblemDetails(type ?? new Uri("unknown://"), title, status, details, null, errors, null);
+        }
+    );
+    #endregion
+
+    #region Setters
     /// <summary>
     /// Sets the state's <see cref="ReferenceDetailsState.Label"/>
     /// </summary>
@@ -77,7 +124,9 @@ public class ReferenceDetailsStore(
     {
         this.Reduce(state => state with
         {
-            Reference = reference
+            Reference = reference,
+            Document = string.Empty,
+            Loaded = false,
         });
     }
 
@@ -85,14 +134,16 @@ public class ReferenceDetailsStore(
     /// Sets the state's <see cref="ReferenceDetailsState.TextEditor"/>
     /// </summary>
     /// <param name="textEditor">The new <see cref="ReferenceDetailsState.TextEditor"/> value</param>
-    public void SetTextEditor(StandaloneCodeEditor textEditor)
+    public void SetTextEditor(StandaloneCodeEditor? textEditor)
     {
         this.Reduce(state => state with
         {
             TextEditor = textEditor
         });
     }
+    #endregion
 
+    #region Actions
     /// <summary>
     /// Loads the referenced documents
     /// </summary>
@@ -100,15 +151,38 @@ public class ReferenceDetailsStore(
     public async Task LoadReferencedDocument()
     {
         var reference = this.Get(state => state.Reference);
-        var loading = this.Get(state => state.Loading);
-        if (string.IsNullOrWhiteSpace(reference) && loading) return;
-        var document = await api.WorkflowData.GetAsync(reference);
-        var json = serializer.SerializeToText(document.Content);
-        this.Reduce(state => state with { 
-            Document = json,
-            Loading = false
-        });
-        await this.SetTextEditorValueAsync();
+        var loaded = this.Get(state => state.Loaded);
+        if (loaded || string.IsNullOrWhiteSpace(reference)) return;
+        try 
+        { 
+            var document = await api.WorkflowData.GetAsync(reference);
+            string documentText = jsonSerializer.SerializeToText(document.Content);
+            this.Reduce(state => state with
+            {
+                Document = documentText,
+                Loaded = true
+            });
+            await this.SetTextEditorValueAsync();
+        }
+        catch (ProblemDetailsException ex)
+        {
+            if (ex.Problem != null)
+            {
+                this.Reduce(state => state with
+                {
+                    ProblemType = ex.Problem?.Type,
+                    ProblemTitle = ex.Problem?.Title ?? string.Empty,
+                    ProblemStatus = ex.Problem?.Status ?? 0,
+                    ProblemDetail = ex.Problem?.Detail ?? string.Empty,
+                    ProblemErrors = ex.Problem?.Errors?.ToDictionary(kvp => kvp.Key, kvp => kvp.Value) ?? []
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.ToString());
+            // todo: handle exception
+        }
     }
 
     /// <summary>
@@ -127,7 +201,7 @@ public class ReferenceDetailsStore(
         var editorLanguage = await model.GetLanguageId();
         if (editorLanguage != language)
         {
-            await this.SetTextBasedEditorLanguageAsync();
+            await this.OnTextBasedEditorInitAsync();
         }
     }
 
@@ -137,40 +211,8 @@ public class ReferenceDetailsStore(
     /// <returns></returns>
     public async Task OnTextBasedEditorInitAsync()
     {
-        var reference = this.Get(state => state.Reference);
-        var resourceUri = $"inmemory://{reference.ToLower()}";
-        var textModel = await Global.GetModel(jsRuntime, resourceUri);
-        if (textModel == null)
-        {
-            var document = this.Get(state => state.Document) ?? "";
-            textModel = await Global.CreateModel(jsRuntime, document, monacoEditorHelper.PreferredLanguage, resourceUri);
-            var textEditor = this.Get(state => state.TextEditor);
-            await textEditor!.SetModel(textModel);
-            this.Reduce(state => state with
-            {
-                TextModel = textModel
-            });
-        }
-        else
-        {
-            await this.SetTextEditorValueAsync();
-            await this.SetTextBasedEditorLanguageAsync();
-        }
-    }
-
-    /// <summary>
-    /// Changes the value of the text editor
-    /// </summary>
-    /// <returns></returns>
-    async Task SetTextEditorValueAsync()
-    {
-        var textEditor = this.Get(state => state.TextEditor);
-        if (textEditor != null)
-        {
-            var text = await textEditor.GetValue();
-            var document = this.Get(state => state.Document) ?? "";
-            if (text != document) await textEditor.SetValue(document);
-        }
+        await this.SetTextEditorValueAsync();
+        await this.SetTextBasedEditorLanguageAsync();
     }
 
     /// <summary>
@@ -181,9 +223,83 @@ public class ReferenceDetailsStore(
     {
         var textEditor = this.Get(state => state.TextEditor);
         var textModel = this.Get(state => state.TextModel);
-        if (textEditor != null && textModel != null)
+        if (textEditor != null)
         {
-            await Global.SetModelLanguage(jsRuntime, textModel, monacoEditorHelper.PreferredLanguage);
+            if (textModel != null)
+            {
+                await Global.SetModelLanguage(jsRuntime, textModel, monacoEditorHelper.PreferredLanguage);
+                return;
+            }
+            var reference = this.Get(state => state.Reference);
+            var resourceUri = $"inmemory://{reference.ToLower()}";
+            textModel = await Global.CreateModel(jsRuntime, "", monacoEditorHelper.PreferredLanguage, resourceUri);
+            await textEditor!.SetModel(textModel);
+            this.Reduce(state => state with
+            {
+                TextModel = textModel
+            });
+        }
+    }
+
+    /// <summary>
+    /// Changes the value of the text editor
+    /// </summary>
+    /// <returns></returns>
+    async Task SetTextEditorValueAsync()
+    {
+        var textEditor = this.Get(state => state.TextEditor);
+        var document = this.Get(state => state.Document);
+        if (textEditor != null && !string.IsNullOrWhiteSpace(document))
+        {
+            try
+            {
+                document = monacoEditorHelper.PreferredLanguage == PreferredLanguage.YAML ?
+                    yamlSerializer.ConvertFromJson(document) :
+                    yamlSerializer.ConvertToJson(document);
+                this.Reduce(state => state with
+                {
+                    Document = document
+                });
+                await textEditor.SetValue(document);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                await monacoEditorHelper.ChangePreferredLanguageAsync(monacoEditorHelper.PreferredLanguage == PreferredLanguage.YAML ? PreferredLanguage.JSON : PreferredLanguage.YAML);
+            }
+        }
+    }
+    #endregion
+
+    private bool disposed;
+    /// <summary>
+    /// Disposes of the store
+    /// </summary>
+    /// <param name="disposing">A boolean indicating whether or not the dispose of the store</param>
+    protected override void Dispose(bool disposing)
+    {
+        base.Dispose(disposing);
+        if (!this.disposed)
+        {
+            if (disposing)
+            {
+                var textEditor = this.Get(state => state.TextEditor);
+                var textModel = this.Get(state => state.TextModel);
+                if (textModel != null)
+                {
+                    textModel.DisposeModel();
+                    this.Reduce(state => state with
+                    { 
+                        TextModel = null 
+                    });
+                }
+                if (textEditor != null)
+                {
+                    textEditor.Dispose();
+                    this.SetTextEditor(null);
+                }
+            }
+            this.disposed = true;
         }
     }
 

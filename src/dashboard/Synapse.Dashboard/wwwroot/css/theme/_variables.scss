@@ -5,6 +5,9 @@ $primary-text: $primary;
 $primary-bg-subtle: #7d59bd !default;
 $primary-border-subtle: #714db1 !default;
 $secondary: #3c8cd6 !default;
+$variable-prefix: bs- !default; // Deprecated in v5.2.0 for the shorter `$prefix`
+$prefix: $variable-prefix !default;
+$accordion-button-active-color: var(--#{$prefix}primary-text-dark) !default;
 
 @import "../../lib/bootstrap/scss/variables";
 
@@ -22,7 +25,6 @@ $mute-dark: $mute;
 $mute-text-dark: $mute;
 $link-color-dark: $purple-400 !default;
 $link-hover-color-dark: $purple-200 !default;
-$accordion-button-active-color: var(--#{$prefix}primary-text-dark) !default;
 
 @import "../../lib/bootstrap/scss/variables-dark";
 @import "../../lib/bootstrap/scss/maps";

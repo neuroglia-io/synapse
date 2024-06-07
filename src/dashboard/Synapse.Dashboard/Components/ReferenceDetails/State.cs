@@ -35,9 +35,9 @@ public record ReferenceDetailsState
     public string Document { get; set; } = string.Empty;
 
     /// <summary>
-    /// Gets/sets a boolean indicating the reference is being loaded
+    /// Gets/sets a boolean indicating the reference has been loaded
     /// </summary>
-    public bool Loading { get; set; } = true;
+    public bool Loaded { get; set; } = false;
 
     /// <summary>
     /// Gets/sets the <see cref="StandaloneCodeEditor"/> used to display the referenced document
@@ -48,4 +48,29 @@ public record ReferenceDetailsState
     /// Gets/sets the <see cref="TextModel"/> used by the <see cref="StandaloneCodeEditor"/>
     /// </summary>
     public TextModel? TextModel { get; set; } = null;
+
+    /// <summary>
+    /// Gets/sets the <see cref="ProblemDetails"/> type that occurred when trying to save the resource, if any
+    /// </summary>
+    public Uri? ProblemType { get; set; } = null;
+
+    /// <summary>
+    /// Gets/sets the <see cref="ProblemDetails"/> title that occurred when trying to save the resource, if any
+    /// </summary>
+    public string ProblemTitle { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Gets/sets the <see cref="ProblemDetails"/> details that occurred when trying to save the resource, if any
+    /// </summary>
+    public string ProblemDetail { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Gets/sets the <see cref="ProblemDetails"/> status that occurred when trying to save the resource, if any
+    /// </summary>
+    public int ProblemStatus { get; set; } = 0;
+
+    /// <summary>
+    /// Gets/sets the list of <see cref="ProblemDetails"/> errors that occurred when trying to save the resource, if any
+    /// </summary>
+    public IDictionary<string, string[]> ProblemErrors { get; set; } = new Dictionary<string, string[]>();
 }

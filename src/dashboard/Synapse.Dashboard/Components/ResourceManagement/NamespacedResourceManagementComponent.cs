@@ -18,7 +18,7 @@ namespace Synapse.Dashboard.Components;
 /// </summary>
 /// <typeparam name="TResource">The type of <see cref="IResource"/> to manage</typeparam>
 public abstract class NamespacedResourceManagementComponent<TResource>
-    : ResourceManagementComponent<NamespacedResourceManagementComponentStore<TResource>, TResource>
+    : ResourceManagementComponent<NamespacedResourceManagementComponent<TResource>, NamespacedResourceManagementComponentStore<TResource>, TResource>
     where TResource : Resource, new()
 {
 

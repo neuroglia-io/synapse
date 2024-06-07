@@ -18,10 +18,12 @@ namespace Synapse.Dashboard.Components;
 /// <summary>
 /// Represents the base class for all components used to manage <see cref="IResource"/>s
 /// </summary>
+/// <typeparam name="TComponent">The type of component inheriting the <see cref="ResourceManagementComponent{TComponent, TStore, TResource}"/></typeparam>
 /// <typeparam name="TStore">The type of <see cref="ResourceManagementComponentStoreBase{TResource}"/> to use</typeparam>
 /// <typeparam name="TResource">The type of <see cref="IResource"/> to manage</typeparam>
-public abstract class ResourceManagementComponent<TStore, TResource>
-    : StatefulComponent<TStore, ResourceManagementComponentState<TResource>>
+public abstract class ResourceManagementComponent<TComponent, TStore, TResource>
+    : StatefulComponent<TComponent, TStore, ResourceManagementComponentState<TResource>>
+    where TComponent : ResourceManagementComponent<TComponent, TStore, TResource>
     where TStore : ResourceManagementComponentStoreBase<TResource>
     where TResource : Resource, new()
 {
@@ -87,16 +89,6 @@ public abstract class ResourceManagementComponent<TStore, TResource>
         this.Store.Resources.Subscribe(OnResourceCollectionChanged, token: this.CancellationTokenSource.Token);
         await this.Store.GetResourceDefinitionAsync().ConfigureAwait(false);
         await this.Store.ListResourcesAsync().ConfigureAwait(false);
-    }
-
-    /// <summary>
-    /// Patches the <see cref="View"/>'s fields after a change
-    /// </summary>
-    /// <param name="patch">The patch to apply</param>
-    private void OnStateChanged(Action<ResourceManagementComponent<TStore, TResource>> patch)
-    {
-        patch(this);
-        this.StateHasChanged();
     }
 
     /// <summary>

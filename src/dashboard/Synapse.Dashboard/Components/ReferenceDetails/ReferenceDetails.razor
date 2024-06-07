@@ -1,16 +1,16 @@
 ﻿@namespace Synapse.Dashboard.Components
 @using Synapse.Dashboard.Components.ReferenceDetailsStateManagement
-@inherits StatefulComponent<ReferenceDetailsStore, ReferenceDetailsState>
+@inherits StatefulComponent<ReferenceDetails, ReferenceDetailsStore, ReferenceDetailsState>
 @inject IMonacoEditorHelper MonacoEditorHelper
 @inject Synapse.Api.Client.Services.ISynapseApiClient Api
 @inject IJsonSerializer Serializer
 
-<Accordion Flush="true" OnShowing="OnShowingAsync">
-    <AccordionItem Title="@label" Name="AccordionItem1">
+<Accordion @ref="accordion" Flush="true" OnShowing="Store.LoadReferencedDocument">
+    <AccordionItem Title="@_label" Name="Reference">
         <Content>
-            @if (loading)
+            @if (!_loaded)
             {
-                <Spinner Type="SpinnerType.Dots" Class="me-3" Color="SpinnerColor.Primary" />
+                <Spinner Class="me-3" Color="SpinnerColor.Primary" Size="SpinnerSize.Small" />
             }
             else
             {
@@ -20,74 +20,107 @@
                                       OnDidInit="Store.OnTextBasedEditorInitAsync"
                                       CssClass="h-100-px" />
             }
+            @if (_problemDetails != null)
+            {
+                <div class="problems">
+                    <Callout Type="CalloutType.Danger" Heading="@_problemDetails.Title">
+                        @_problemDetails.Detail
+                </Callout>
+                    @if (_problemDetails.Errors != null && _problemDetails.Errors.Any())
+                    {
+                            foreach (KeyValuePair<string, string[]> errorContainer in _problemDetails.Errors)
+                        {
+                            <Callout Type="CalloutType.Danger" Heading="@errorContainer.Key">
+                                <ul>
+                                    @foreach (string error in errorContainer.Value)
+                                    {
+                                        <li>@error</li>
+                                    }
+                                </ul>
+                            </Callout>
+                        }
+                    }
+                </div>
+            }
         </Content>
     </AccordionItem>
 </Accordion>
 
 @code {
+    /// <summary>
+    /// The label to display
+    /// </summary>
     [Parameter] public string Label { get; set; } = null!;
+    /// <summary>
+    /// The reference of the document to load
+    /// </summary>
     [Parameter] public string Reference { get; set; } = null!;
 
-
-    private StandaloneCodeEditor TextBasedEditor
+    /// <summary>
+    /// The <see cref="Accordion" /> reference
+    /// </summary>
+    private Accordion accordion = default!;
+    /// <summary>
+    /// The <see cref="StandaloneCodeEditor"/> reference accessor
+    /// </summary>
+    private StandaloneCodeEditor? TextBasedEditor
     {
         get
         {
-            return this.textEditor;
+            return this._textEditor;
         }
         set
         {
             this.Store.SetTextEditor(value);
         }
     }
-    private StandaloneCodeEditor textEditor = null!;
-    private string label = "";
-    private string reference = "";
-    private bool loading = false;
+    /// <summary>
+    /// The <see cref="StandaloneCodeEditor"/> reference
+    /// </summary>
+    private StandaloneCodeEditor? _textEditor = null;
+    /// <summary>
+    /// The internal label
+    /// </summary>
+    private string _label = "";
+    /// <summary>
+    /// The internal reference
+    /// </summary>
+    private string _reference = "";
+    /// <summary>
+    /// The internal boolean indicating if the resource already loaded
+    /// </summary>
+    private bool _loaded = false;
+    /// <summary>
+    /// The <see cref="ProblemDetails"/> that occurred when trying to save the resource, if any
+    /// </summary>
+    private ProblemDetails? _problemDetails = null;
 
     /// <inheritdoc/>
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync().ConfigureAwait(false);
-        this.Store.Label.Subscribe(partitionType => this.OnStateChanged(cmp => cmp.label = label), token: this.CancellationTokenSource.Token);
-        this.Store.Reference.Subscribe(partitionType => this.OnStateChanged(cmp => cmp.reference = reference), token: this.CancellationTokenSource.Token);
-        this.Store.Loading.Subscribe(partitionType => this.OnStateChanged(cmp =>
-        {
-            cmp.loading = !cmp.loading;
-        }), token: this.CancellationTokenSource.Token);
-        this.Store.TextEditor.Subscribe(partitionType => this.OnStateChanged(cmp => cmp.textEditor = textEditor), token: this.CancellationTokenSource.Token);
+        this.Store.Label.Subscribe(label => this.OnStateChanged(cmp => cmp._label = label), token: this.CancellationTokenSource.Token);
+        this.Store.Reference.Subscribe(reference => this.OnStateChanged(cmp => cmp._reference = reference), token: this.CancellationTokenSource.Token);
+        this.Store.Loaded.Subscribe(loading => this.OnStateChanged(cmp => cmp._loaded = loading), token: this.CancellationTokenSource.Token);
+        this.Store.ProblemDetails.Subscribe(problemDetails => this.OnStateChanged(cmp => cmp._problemDetails = problemDetails), token: this.CancellationTokenSource.Token);
+        this.Store.TextEditor.Subscribe(textEditor => this.OnStateChanged(cmp => cmp._textEditor = textEditor), token: this.CancellationTokenSource.Token);
     }
 
     /// <inheritdoc/>
-    protected override void OnParametersSet()
+    protected override async Task OnParametersSetAsync()
     {
-        base.OnParametersSet();
-        if (this.label != this.Label)
+        await base.OnParametersSetAsync();
+        if (this._label != this.Label)
         {
             this.Store.SetLabel(this.Label);
         }
-        if (this.reference != this.Reference)
+        if (this._reference != this.Reference)
         {
             this.Store.SetReference(this.Reference);
         }
-    }
-
-    /// <summary>
-    /// Patches the <see cref="ReferenceDetails"/>'s fields after a <see cref="ReferenceDetailsStore"/>'s change
-    /// </summary>
-    /// <param name="patch">The patch to apply</param>
-    private void OnStateChanged(Action<ReferenceDetails> patch)
-    {
-        patch(this);
-        this.StateHasChanged();
-    }
-
-    /// <summary>
-    /// Handles OnShowing event
-    /// </summary>
-    /// <param name="args"></param>
-    async Task OnShowingAsync(AccordionEventArgs args)
-    {
-        await this.Store.LoadReferencedDocument();
+        if (this.accordion != null)
+        {
+            await this.accordion.HideFirstAccordionItemAsync();
+        }
     }
 }
