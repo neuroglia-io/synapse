@@ -12,6 +12,7 @@
 // limitations under the License.
 
 using Synapse.Dashboard.Components.ResourceEditorStateManagement;
+using static ServerlessWorkflow.Sdk.RuntimeExpressions;
 
 namespace Synapse.Dashboard.Components.ReferenceDetailsStateManagement;
 
@@ -192,17 +193,7 @@ public class ReferenceDetailsStore(
     /// <returns></returns>
     public async Task ToggleTextBasedEditorLanguageAsync(string language)
     {
-        var textEditor = this.Get(state => state.TextEditor);
-        if (textEditor == null)
-        {
-            return;
-        }
-        var model = await textEditor.GetModel();
-        var editorLanguage = await model.GetLanguageId();
-        if (editorLanguage != language)
-        {
-            await this.OnTextBasedEditorInitAsync();
-        }
+        await this.OnTextBasedEditorInitAsync();
     }
 
     /// <summary>
@@ -211,8 +202,8 @@ public class ReferenceDetailsStore(
     /// <returns></returns>
     public async Task OnTextBasedEditorInitAsync()
     {
-        await this.SetTextEditorValueAsync();
         await this.SetTextBasedEditorLanguageAsync();
+        await this.SetTextEditorValueAsync();
     }
 
     /// <summary>
@@ -221,23 +212,34 @@ public class ReferenceDetailsStore(
     /// <returns></returns>
     public async Task SetTextBasedEditorLanguageAsync()
     {
-        var textEditor = this.Get(state => state.TextEditor);
-        var textModel = this.Get(state => state.TextModel);
-        if (textEditor != null)
+        try
         {
-            if (textModel != null)
+            var textEditor = this.Get(state => state.TextEditor);
+            var textModel = this.Get(state => state.TextModel);
+            var language = monacoEditorHelper.PreferredLanguage;
+            if (textEditor != null)
             {
-                await Global.SetModelLanguage(jsRuntime, textModel, monacoEditorHelper.PreferredLanguage);
-                return;
+                if (textModel != null)
+                {
+                    await Global.SetModelLanguage(jsRuntime, textModel, language);
+                }
+                else
+                {
+                    var reference = this.Get(state => state.Reference);
+                    var resourceUri = $"inmemory://{reference.ToLower()}";
+                    textModel = await Global.CreateModel(jsRuntime, "", language, resourceUri);
+                }
+                await textEditor!.SetModel(textModel);
+                this.Reduce(state => state with
+                {
+                    TextModel = textModel
+                });
             }
-            var reference = this.Get(state => state.Reference);
-            var resourceUri = $"inmemory://{reference.ToLower()}";
-            textModel = await Global.CreateModel(jsRuntime, "", monacoEditorHelper.PreferredLanguage, resourceUri);
-            await textEditor!.SetModel(textModel);
-            this.Reduce(state => state with
-            {
-                TextModel = textModel
-            });
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.ToString());
+            // todo: handle exception
         }
     }
 
@@ -249,23 +251,21 @@ public class ReferenceDetailsStore(
     {
         var textEditor = this.Get(state => state.TextEditor);
         var document = this.Get(state => state.Document);
+        var language = monacoEditorHelper.PreferredLanguage;
         if (textEditor != null && !string.IsNullOrWhiteSpace(document))
         {
             try
             {
-                document = monacoEditorHelper.PreferredLanguage == PreferredLanguage.YAML ?
-                    yamlSerializer.ConvertFromJson(document) :
-                    yamlSerializer.ConvertToJson(document);
-                this.Reduce(state => state with
+                if (language == PreferredLanguage.YAML)
                 {
-                    Document = document
-                });
+                    document = yamlSerializer.ConvertFromJson(document);
+                }
                 await textEditor.SetValue(document);
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.ToString());
-                await monacoEditorHelper.ChangePreferredLanguageAsync(monacoEditorHelper.PreferredLanguage == PreferredLanguage.YAML ? PreferredLanguage.JSON : PreferredLanguage.YAML);
+                await monacoEditorHelper.ChangePreferredLanguageAsync(language == PreferredLanguage.YAML ? PreferredLanguage.JSON : PreferredLanguage.YAML);
             }
         }
     }
@@ -278,7 +278,6 @@ public class ReferenceDetailsStore(
     /// <param name="disposing">A boolean indicating whether or not the dispose of the store</param>
     protected override void Dispose(bool disposing)
     {
-        base.Dispose(disposing);
         if (!this.disposed)
         {
             if (disposing)
