@@ -11,19 +11,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Neuroglia.Security.Services;
-using System.Security.Claims;
-
-namespace Synapse.Operator.Services;
-
-/// <summary>
-/// Represents an <see cref="IUserAccessor"/> implementation used to access the user that represents the executing application
-/// </summary>
-public class ApplicationUserAccessor
-    : IUserAccessor
-{
-
-    /// <inheritdoc/>
-    public ClaimsPrincipal? User => new(new ClaimsIdentity());
-
-}
+global using Microsoft.AspNetCore.Diagnostics;
+global using Microsoft.Extensions.Options;
+global using Neuroglia;
+global using Neuroglia.Serialization;
+global using ServerlessWorkflow.Sdk;
+global using Swashbuckle.AspNetCore.SwaggerUI;
+global using Synapse;
+global using Synapse.Api.Application;
+global using Synapse.Api.Http;
+global using Synapse.Api.Http.Hubs;
+global using Synapse.Api.Server.Configuration;
+global using System.Net.Mime;

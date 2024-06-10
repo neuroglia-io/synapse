@@ -29,9 +29,9 @@ public record Correlation
     public static readonly ResourceDefinitionInfo ResourceDefinition = new CorrelationResourceDefinition()!;
 
     /// <inheritdoc/>
-    public Correlation() : base(ResourceDefinition) { }
+    public Correlation() : base(ResourceDefinition) { this.Status = new(); }
 
     /// <inheritdoc/>
-    public Correlation(ResourceMetadata metadata, CorrelationSpec spec) : base(ResourceDefinition, metadata, spec) { }
+    public Correlation(ResourceMetadata metadata, CorrelationSpec spec) : base(ResourceDefinition, metadata, spec, new()) { }
 
 }
