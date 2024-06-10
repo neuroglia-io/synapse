@@ -19409,7 +19409,7 @@ text {
 }
 
 html, body {
-  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-family: "Source Sans Pro", "Helvetica Neue", Helvetica, Arial, sans-serif;
   width: 100%;
   height: 100%;
 }
@@ -19476,6 +19476,7 @@ h1:focus, .h1:focus {
 .logo-typing {
   font-family: Aquatico;
   color: #8c68cd;
+  margin-right: 16px;
   /*
       background-image: -webkit-linear-gradient(0deg, $primary-dark 0%, $primary-bg-subtle-dark 100%);
       background-clip: text;
@@ -19483,6 +19484,11 @@ h1:focus, .h1:focus {
       text-fill-color: transparent;
       -webkit-text-fill-color: transparent;
   */
+}
+
+.logo-typing-large {
+  font-size: 8rem;
+  margin-right: 0px;
 }
 
 .vh-30 {
