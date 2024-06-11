@@ -12,7 +12,6 @@
 // limitations under the License.
 
 using Synapse.Dashboard.Components.ResourceEditorStateManagement;
-using static ServerlessWorkflow.Sdk.RuntimeExpressions;
 
 namespace Synapse.Dashboard.Components.ReferenceDetailsStateManagement;
 
@@ -33,6 +32,12 @@ public class ReferenceDetailsStore(
 )
     : ComponentStore<ReferenceDetailsState>(new())
 {
+    /// <summary>
+    /// The <see cref="BlazorMonaco.Editor.StandaloneEditorConstructionOptions"/> provider function
+    /// </summary>
+    public Func<StandaloneCodeEditor, StandaloneEditorConstructionOptions> StandaloneEditorConstructionOptions = monacoEditorHelper.GetStandaloneEditorConstructionOptions(string.Empty, true, monacoEditorHelper.PreferredLanguage);
+
+
     #region Selectors
     /// <summary>
     /// Gets an <see cref="IObservable{T}"/> used to observe <see cref="ReferenceDetailsState.Label"/> changes
@@ -145,6 +150,8 @@ public class ReferenceDetailsStore(
     #endregion
 
     #region Actions
+    
+
     /// <summary>
     /// Loads the referenced documents
     /// </summary>

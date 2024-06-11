@@ -75,6 +75,7 @@ public abstract class ResourceManagementComponent<TComponent, TStore, TResource>
     {
         await base.OnInitializedAsync().ConfigureAwait(false);
         this.Store.Loading.Subscribe(loading => this.OnStateChanged(cmp => cmp.Loading = loading), token: this.CancellationTokenSource.Token);
+        this.Store.Resources.Subscribe(resources => this.OnStateChanged(cmp => cmp.Resources = resources), token: this.CancellationTokenSource.Token);
         this.Store.Definition.SubscribeAsync(async definition =>
         {
             if (this.Definition != definition)
@@ -86,19 +87,8 @@ public abstract class ResourceManagementComponent<TComponent, TStore, TResource>
                 }
             }
         }, cancellationToken: this.CancellationTokenSource.Token);
-        this.Store.Resources.Subscribe(OnResourceCollectionChanged, token: this.CancellationTokenSource.Token);
         await this.Store.GetResourceDefinitionAsync().ConfigureAwait(false);
         await this.Store.ListResourcesAsync().ConfigureAwait(false);
-    }
-
-    /// <summary>
-    /// Updates the <see cref="ResourceManagementComponent{TStore, TResource}.Resources"/>
-    /// </summary>
-    /// <param name="resources"></param>
-    protected void OnResourceCollectionChanged(EquatableList<TResource>? resources)
-    {
-        this.Resources = resources;
-        this.StateHasChanged();
     }
 
     /// <summary>
