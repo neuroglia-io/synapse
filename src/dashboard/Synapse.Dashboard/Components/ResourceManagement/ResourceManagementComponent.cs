@@ -20,11 +20,12 @@ namespace Synapse.Dashboard.Components;
 /// </summary>
 /// <typeparam name="TComponent">The type of component inheriting the <see cref="ResourceManagementComponent{TComponent, TStore, TResource}"/></typeparam>
 /// <typeparam name="TStore">The type of <see cref="ResourceManagementComponentStoreBase{TResource}"/> to use</typeparam>
+/// <typeparam name="TState">The type of the component's state</typeparam>
 /// <typeparam name="TResource">The type of <see cref="IResource"/> to manage</typeparam>
-public abstract class ResourceManagementComponent<TComponent, TStore, TResource>
-    : StatefulComponent<TComponent, TStore, ResourceManagementComponentState<TResource>>
-    where TComponent : ResourceManagementComponent<TComponent, TStore, TResource>
-    where TStore : ResourceManagementComponentStoreBase<TResource>
+public abstract class ResourceManagementComponent<TStore, TState, TResource>
+    : StatefulComponent<TStore, TState>
+    where TStore : ResourceManagementComponentStoreBase<TState, TResource>
+    where TState : ResourceManagementComponentState<TResource>, new()
     where TResource : Resource, new()
 {
 
@@ -92,7 +93,17 @@ public abstract class ResourceManagementComponent<TComponent, TStore, TResource>
     }
 
     /// <summary>
-    /// Updates the <see cref="ResourceManagementComponent{TComponent, TStore, TResource}.Resources"/>
+    /// Patches the <see cref="View"/>'s fields after a change
+    /// </summary>
+    /// <param name="patch">The patch to apply</param>
+    private void OnStateChanged(Action<ResourceManagementComponent<TStore, TResource>> patch)
+    {
+        patch(this);
+        this.StateHasChanged();
+    }
+
+    /// <summary>
+    /// Updates the <see cref="ResourceManagementComponent{TStore, TResource}.Resources"/>
     /// </summary>
     /// <param name="resources"></param>
     protected void OnResourceCollectionChanged(EquatableList<TResource>? resources)
@@ -151,5 +162,21 @@ public abstract class ResourceManagementComponent<TComponent, TStore, TResource>
         string actionType = resource == null ? "creation" : "edition";
         return this.EditorOffCanvas.ShowAsync<ResourceEditor<TResource>>(title: typeof(TResource).Name + " " + actionType, parameters: parameters);
     }
+
+}
+
+
+/// <summary>
+/// Represents the base class for all components used to manage <see cref="IResource"/>s
+/// </summary>
+/// <typeparam name="TStore">The type of <see cref="ResourceManagementComponentStoreBase{TResource}"/> to use</typeparam>
+/// <typeparam name="TResource">The type of <see cref="IResource"/> to manage</typeparam>
+public abstract class ResourceManagementComponent<TStore, TResource>
+    : ResourceManagementComponent<TStore, ResourceManagementComponentState<TResource>, TResource>
+    where TStore : ResourceManagementComponentStoreBase<TResource>
+    where TResource : Resource, new()
+{
+
+
 
 }
