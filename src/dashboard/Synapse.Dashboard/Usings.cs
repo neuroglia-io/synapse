@@ -1,4 +1,4 @@
-﻿// Copyright © 2024-Present Neuroglia SRL. All rights reserved.
+﻿// Copyright © 2024-Present The Synapse Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License"),
 // you may not use this file except in compliance with the License.
@@ -14,6 +14,8 @@
 global using BlazorBootstrap;
 global using BlazorMonaco.Editor;
 global using Microsoft.AspNetCore.Components;
+global using Microsoft.AspNetCore.Components.Web;
+global using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 global using Microsoft.JSInterop;
 global using Neuroglia;
 global using Neuroglia.Data.Infrastructure.ResourceOriented;

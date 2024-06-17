@@ -1,4 +1,4 @@
-﻿// Copyright © 2024-Present Neuroglia SRL. All rights reserved.
+﻿// Copyright © 2024-Present The Synapse Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License"),
 // you may not use this file except in compliance with the License.
@@ -68,7 +68,7 @@ internal class GetCorrelatorCommand
             "yaml" => this.YamlSerializer.SerializeToText(correlator),
             _ => throw new NotSupportedException($"The specified output format '{output}' is not supported"),
         };
-        AnsiConsole.MarkupLine($"[gray]{outputText.EscapeMarkup()}[/]");
+        AnsiConsole.Markup($"[gray]{outputText.EscapeMarkup()}[/]");
     }
 
     static class CommandOptions

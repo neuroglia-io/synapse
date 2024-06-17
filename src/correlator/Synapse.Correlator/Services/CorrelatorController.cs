@@ -1,4 +1,4 @@
-﻿// Copyright © 2024-Present Neuroglia SRL. All rights reserved.
+﻿// Copyright © 2024-Present The Synapse Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License"),
 // you may not use this file except in compliance with the License.
@@ -75,7 +75,7 @@ public class CorrelatorController(IResourceRepository repository, IOptionsMonito
         updatedResource.Status ??= new();
         updatedResource.Status.Phase = phase;
         var patch = JsonPatchUtility.CreateJsonPatchFromDiff(originalResource, updatedResource);
-        await this.Repository.PatchStatusAsync<Resources.Correlator>(new(PatchType.JsonPatch, patch), updatedResource.GetName(), updatedResource.GetNamespace(), false, cancellationToken).ConfigureAwait(false);
+        await this.Repository.PatchStatusAsync<Resources.Correlator>(new(PatchType.JsonPatch, patch), updatedResource.GetName(), updatedResource.GetNamespace(), null, false, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>

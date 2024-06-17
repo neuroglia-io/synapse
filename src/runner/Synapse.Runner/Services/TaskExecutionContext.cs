@@ -1,4 +1,4 @@
-﻿// Copyright © 2024-Present Neuroglia SRL. All rights reserved.
+﻿// Copyright © 2024-Present The Synapse Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License"),
 // you may not use this file except in compliance with the License.
@@ -64,8 +64,11 @@ public class TaskExecutionContext<TDefinition>(IWorkflowExecutionContext workflo
     /// <inheritdoc/>
     public virtual async Task ExecuteAsync(CancellationToken cancellationToken = default)
     {
-        this.Instance = await this.Workflow.ExecuteAsync(this.Instance, cancellationToken).ConfigureAwait(false);
+        this.Instance = await this.Workflow.StartAsync(this.Instance, cancellationToken).ConfigureAwait(false);
     }
+
+    /// <inheritdoc/>
+    public virtual Task<CorrelationContext> CorrelateAsync(CancellationToken cancellationToken = default) => this.Workflow.CorrelateAsync(this, cancellationToken);
 
     /// <inheritdoc/>
     public virtual async Task SkipAsync(CancellationToken cancellationToken = default)

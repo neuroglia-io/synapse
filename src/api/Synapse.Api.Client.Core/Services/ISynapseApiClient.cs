@@ -1,4 +1,4 @@
-﻿// Copyright © 2024-Present Neuroglia SRL. All rights reserved.
+﻿// Copyright © 2024-Present The Synapse Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License"),
 // you may not use this file except in compliance with the License.
@@ -38,6 +38,16 @@ public interface ISynapseApiClient
     /// Gets the Synapse API used to manage <see cref="Operator"/>s
     /// </summary>
     INamespacedResourceApiClient<Operator> Operators { get; }
+
+    /// <summary>
+    /// Gets the Synapse API used to manage <see cref="ServiceAccount"/>s
+    /// </summary>
+    INamespacedResourceApiClient<ServiceAccount> ServiceAccounts { get; }
+
+    /// <summary>
+    /// Gets the Synapse API used to manage users
+    /// </summary>
+    IUserApiClient Users { get; }
 
     /// <summary>
     /// Gets the Synapse API used to manage <see cref="Workflow"/>s

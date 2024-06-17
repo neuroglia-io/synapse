@@ -1,4 +1,4 @@
-﻿// Copyright © 2024-Present Neuroglia SRL. All rights reserved.
+﻿// Copyright © 2024-Present The Synapse Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License"),
 // you may not use this file except in compliance with the License.
@@ -27,6 +27,32 @@ public static class SynapseDefaults
     /// Gets the default group for Synapse resources
     /// </summary>
     public const string ResourceGroup = "synapse.io";
+
+    /// <summary>
+    /// Exposes Synapse audiences
+    /// </summary>
+    public static class Audiences
+    {
+
+        /// <summary>
+        /// Gets the Synapse API audience
+        /// </summary>
+        public const string Api = "synapse-api";
+
+    }
+
+    /// <summary>
+    /// Exposes Synapse claims
+    /// </summary>
+    public static class Claims
+    {
+
+        /// <summary>
+        /// Gets the service account claim type
+        /// </summary>
+        public const string ServiceAccount = "service_account";
+
+    }
 
     /// <summary>
     /// Exposes Synapse environment variables
@@ -59,6 +85,84 @@ public static class SynapseDefaults
             /// Gets the environment variable used to configure the base uri of the Synapse API to use
             /// </summary>
             public const string Uri = Prefix + "URI";
+            /// <summary>
+            /// Gets the token to use to connect to the Synapse API
+            /// </summary>
+            public const string Token = Prefix + "TOKEN";
+
+            /// <summary>
+            /// Exposes constants about environment variables related to API authentication
+            /// </summary>
+            public static class Authentication
+            {
+
+                /// <summary>
+                /// Gets the prefix for all API related environment variables
+                /// </summary>
+                public const string Prefix = Api.Prefix + "AUTH_";
+
+                /// <summary>
+                /// Gets the name of the environment variables used to specify the YAML file that defines the users to generate a static token for
+                /// </summary>
+                public const string File = Prefix + "TOKEN_FILE";
+
+                /// <summary>
+                /// Exposes constants about environment variables related to the API's JWT Bearer authentication scheme, if any
+                /// </summary>
+                public static class Jwt
+                {
+
+                    /// <summary>
+                    /// Gets the prefix for all JWT Bearer related environment variables
+                    /// </summary>
+                    public const string Prefix = Authentication.Prefix + "JWT_";
+
+                    /// <summary>
+                    /// Gets the name of the environment variables used to specify the JWT Bearer authority to use
+                    /// </summary>
+                    public const string Authority = Prefix + "AUTHORITY";
+                    /// <summary>
+                    /// Gets the name of the environment variables used to specify the JWT Bearer audience
+                    /// </summary>
+                    public const string Audience = Prefix + "AUDIENCE";
+
+                }
+
+                /// <summary>
+                /// Exposes constants about environment variables related to the API's OIDC authentication scheme, if any
+                /// </summary>
+                public static class Oidc
+                {
+
+                    /// <summary>
+                    /// Gets the prefix for all OIDC related environment variables
+                    /// </summary>
+                    public const string Prefix = Authentication.Prefix + "OIDC_";
+
+                    /// <summary>
+                    /// Gets the name of the environment variables used to specify the OIDC authority to use
+                    /// </summary>
+                    public const string Authority = Prefix + "AUTHORITY";
+                    /// <summary>
+                    /// Gets the name of the environment variables used to specify the OIDC client id
+                    /// </summary>
+                    public const string ClientId = Prefix + "CLIENT_ID";
+                    /// <summary>
+                    /// Gets the name of the environment variables used to specify the OIDC client secret
+                    /// </summary>
+                    public const string ClientSecret = Prefix + "CLIENT_SECRET";
+                    /// <summary>
+                    /// Gets the name of the environment variables used to define the comma-separated OIDC scope(s) to use
+                    /// </summary>
+                    public const string Scope = Prefix + "SCOPE";
+                    /// <summary>
+                    /// Gets the name of the environment variables used to define the key used by the OIDC authority to sign tokens
+                    /// </summary>
+                    public const string SigningKey = Prefix + "SIGNING_KEY";
+
+                }
+
+            }
 
         }
 
@@ -85,6 +189,24 @@ public static class SynapseDefaults
         }
 
         /// <summary>
+        /// Exposes constants about dashboard-related environment variables
+        /// </summary>
+        public static class Dashboard
+        {
+
+            /// <summary>
+            /// Gets the prefix for all dashboard related environment variables
+            /// </summary>
+            public const string Prefix = EnvironmentVariables.Prefix + "DASHBOARD_";
+
+            /// <summary>
+            /// Gets the environment variable used to determine whether or not to serve the dashboard
+            /// </summary>
+            public const string Serve = Prefix + "SERVE";
+
+        }
+
+        /// <summary>
         /// Exposes constants about operator-related environment variables
         /// </summary>
         public static class Operator
@@ -103,10 +225,24 @@ public static class SynapseDefaults
             /// Gets the environment variable used to configure the operator's name
             /// </summary>
             public const string Name = Prefix + "NAME";
+
             /// <summary>
-            /// Gets the environment variable used to configure the API used by runners spawned by the operator
+            /// Exposes constants about an operator's runner-related environment variables
             /// </summary>
-            public const string Api = Prefix + "API";
+            public static class Runner
+            {
+
+                /// <summary>
+                /// Gets the prefix for all operator runner related environment variables
+                /// </summary>
+                public const string Prefix = Operator.Prefix + "RUNNER_";
+
+                /// <summary>
+                /// Gets the environment variable used to configure the API used by runners spawned by the operator
+                /// </summary>
+                public const string Api = Prefix + "API";
+
+            }
 
         }
 
@@ -158,6 +294,11 @@ public static class SynapseDefaults
             public static ResourceDefinition Operator { get; } = new OperatorResourceDefinition();
 
             /// <summary>
+            /// Gets the definition of ServiceAccount resources
+            /// </summary>
+            public static ResourceDefinition ServiceAccount { get; } = new ServiceAccountResourceDefinition();
+
+            /// <summary>
             /// Gets the definition of Workflow resources
             /// </summary>
             public static ResourceDefinition Workflow { get; } = new WorkflowResourceDefinition();
@@ -176,6 +317,7 @@ public static class SynapseDefaults
                 yield return Correlation;
                 yield return Correlator;
                 yield return Operator;
+                yield return ServiceAccount;
                 yield return Workflow;
                 yield return WorkflowInstance;
             }
@@ -201,7 +343,14 @@ public static class SynapseDefaults
             /// Gets the label used by Synapse operators to claim workflows or workflow instances
             /// </summary>
             public const string Operator = Prefix + "operator";
-
+            /// <summary>
+            /// Gets the label used by Synapse to indicate the qualified name of the workflow used by a workflow instance
+            /// </summary>
+            public const string Workflow = Prefix + "workflow";
+            /// <summary>
+            /// Gets the label used by Synapse to indicate the version of the workflow used by a workflow instance
+            /// </summary>
+            public const string WorkflowVersion = Prefix + "workflow/version";
         }
 
     }

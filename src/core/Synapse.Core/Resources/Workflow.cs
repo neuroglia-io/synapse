@@ -1,4 +1,4 @@
-﻿// Copyright © 2024-Present Neuroglia SRL. All rights reserved.
+﻿// Copyright © 2024-Present The Synapse Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License"),
 // you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ namespace Synapse.Resources;
 /// </summary>
 [DataContract]
 public record Workflow
-    : Resource<WorkflowSpec>
+    : Resource<WorkflowSpec, WorkflowStatus>
 {
 
     /// <summary>
@@ -29,9 +29,9 @@ public record Workflow
     public static readonly ResourceDefinitionInfo ResourceDefinition = new WorkflowResourceDefinition()!;
 
     /// <inheritdoc/>
-    public Workflow() : base(ResourceDefinition) { }
+    public Workflow() : base(ResourceDefinition) { this.Status = new(); }
 
     /// <inheritdoc/>
-    public Workflow(ResourceMetadata metadata, WorkflowSpec spec) : base(ResourceDefinition, metadata, spec) { }
+    public Workflow(ResourceMetadata metadata, WorkflowSpec spec) : base(ResourceDefinition, metadata, spec, new()) { }
 
 }

@@ -1,4 +1,4 @@
-﻿// Copyright © 2024-Present Neuroglia SRL. All rights reserved.
+﻿// Copyright © 2024-Present The Synapse Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License"),
 // you may not use this file except in compliance with the License.
@@ -34,11 +34,11 @@ static Parser BuildCommandLineParser()
         .UseDefaults()
         .UseExceptionHandler((ex, context) =>
         {
-            AnsiConsole.MarkupLine($"[red]{ex.Message.EscapeMarkup()}[/]");
+            AnsiConsole.Markup($"[red]{ex.Message.EscapeMarkup()}[/]");
             var inner = ex.InnerException;
             while (inner != null)
             {
-                AnsiConsole.MarkupLine($"[red]{inner.Message.EscapeMarkup()}[/]");
+                AnsiConsole.Markup($"[red]{inner.Message.EscapeMarkup()}[/]");
                 inner = inner.InnerException;
             }
         })
@@ -59,8 +59,10 @@ static void ConfigureServices(IServiceCollection services, IConfiguration config
     services.AddServerlessWorkflowIO();
     services.AddSynapseHttpApiClient(http =>
     {
-        if (string.IsNullOrWhiteSpace(applicationOptions.Api.Current)) return; //todo: warn
-        http.BaseAddress = applicationOptions.Api.Configurations[applicationOptions.Api.Current].Server ?? null!; //todo: warn
+        if (string.IsNullOrWhiteSpace(applicationOptions.Api.Current)) return;
+        var apiConfiguration = applicationOptions.Api.Configurations[applicationOptions.Api.Current];
+        http.BaseAddress = apiConfiguration.Server;
+        http.Token = apiConfiguration.Token;
     });
     services.AddCliCommands();
     services.AddSingleton<IOptionsManager, OptionsManager>();

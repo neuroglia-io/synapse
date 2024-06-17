@@ -1,4 +1,4 @@
-﻿// Copyright © 2024-Present Neuroglia SRL. All rights reserved.
+﻿// Copyright © 2024-Present The Synapse Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License"),
 // you may not use this file except in compliance with the License.
@@ -10,8 +10,6 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
-using Synapse.Dashboard.Components.ReferenceDetailsStateManagement;
 
 namespace Synapse.Dashboard;
 
@@ -34,7 +32,7 @@ public abstract class StatefulComponent<TComponent, TStore, TState>
     protected IServiceProvider ServiceProvider { get; set; } = null!;
 
     /// <summary>
-    /// Gets the <see cref="StatefulComponent{TStore, TState}"/>'s <see cref="System.Threading.CancellationTokenSource"/>
+    /// Gets the <see cref="StatefulComponent{TComponent, TStore, TState}"/>'s <see cref="System.Threading.CancellationTokenSource"/>
     /// </summary>
     protected CancellationTokenSource CancellationTokenSource { get; } = new CancellationTokenSource();
 

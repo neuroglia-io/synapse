@@ -1,4 +1,4 @@
-﻿// Copyright © 2024-Present Neuroglia SRL. All rights reserved.
+﻿// Copyright © 2024-Present The Synapse Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License"),
 // you may not use this file except in compliance with the License.
@@ -10,10 +10,6 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
-using Neuroglia.Data.Expressions.Services;
-using Neuroglia.Eventing.CloudEvents;
-using Synapse.Api.Client.Services;
 
 namespace Synapse.Runner.Services;
 
@@ -115,27 +111,34 @@ public interface IWorkflowExecutionContext
     Task<TaskInstance> InitializeAsync(TaskInstance task, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Executes the workflow
+    /// Starts the workflow
     /// </summary>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/></param>
     /// <returns>A new awaitable <see cref="Task"/></returns>
-    Task ExecuteAsync(CancellationToken cancellationToken = default);
+    Task StartAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Executes the specified task
+    /// Starts the specified task
     /// </summary>
-    /// <param name="task">The task to execute</param>
+    /// <param name="task">The task to start</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/></param>
     /// <returns>The updated <see cref="TaskInstance"/></returns>
-    Task<TaskInstance> ExecuteAsync(TaskInstance task, CancellationToken cancellationToken = default);
+    Task<TaskInstance> StartAsync(TaskInstance task, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Attempts consuming, or begins correlating, the defined events
+    /// Resumes the workflow
     /// </summary>
-    /// <param name="listener">The definition of the event subscription to create</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/></param>
-    /// <returns>A new <see cref="IEnumerable{T}"/> containing all consumable <see cref="CloudEvent"/>s, if any</returns>
-    Task<IEnumerable<CloudEvent>> ConsumeOrBeginCorrelateAsync(ListenerDefinition listener, CancellationToken cancellationToken = default);
+    /// <returns>A new awaitable <see cref="Task"/></returns>
+    Task ResumeAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Begins correlating the events defined by the specified task
+    /// </summary>
+    /// <param name="task">The execution of the task to correlate events for</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/></param>
+    /// <returns>The resulting <see cref="CorrelationContext"/></returns>
+    Task<CorrelationContext> CorrelateAsync(ITaskExecutionContext task, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Suspends the workflow

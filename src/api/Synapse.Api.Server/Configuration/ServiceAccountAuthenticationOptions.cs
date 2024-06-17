@@ -1,4 +1,4 @@
-﻿// Copyright © 2024-Present Neuroglia SRL. All rights reserved.
+﻿// Copyright © 2024-Present The Synapse Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License"),
 // you may not use this file except in compliance with the License.
@@ -14,14 +14,12 @@
 namespace Synapse.Api.Server.Configuration;
 
 /// <summary>
-/// Represents the options used to configure a Synapse API server
+/// Represents the <see cref="AuthenticationSchemeOptions"/> used to configure Synapse's service account based authentication
 /// </summary>
-public class SynapseApiServerOptions
+public class ServiceAccountAuthenticationOptions
+    : AuthenticationSchemeOptions
 {
 
-    /// <summary>
-    /// Gets/sets a boolean indicating whether or not to serve the Synapse Dashboard
-    /// </summary>
-    public bool ServeDashboard { get; set; } = true;
+
 
 }

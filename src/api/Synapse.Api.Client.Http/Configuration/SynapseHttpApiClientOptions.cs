@@ -1,4 +1,4 @@
-﻿// Copyright © 2024-Present Neuroglia SRL. All rights reserved.
+﻿// Copyright © 2024-Present The Synapse Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License"),
 // you may not use this file except in compliance with the License.
@@ -24,13 +24,19 @@ public class SynapseHttpApiClientOptions
     /// </summary>
     public SynapseHttpApiClientOptions()
     {
-        var uri = Environment.GetEnvironmentVariable(SynapseDefaults.EnvironmentVariables.Api.Uri);
-        this.BaseAddress = string.IsNullOrWhiteSpace(uri) ? null! : new(uri, UriKind.RelativeOrAbsolute);
+        var env = Environment.GetEnvironmentVariable(SynapseDefaults.EnvironmentVariables.Api.Uri);
+        this.BaseAddress = string.IsNullOrWhiteSpace(env) ? null! : new(env, UriKind.RelativeOrAbsolute);
+        this.TokenFactory = provider => Task.FromResult(Environment.GetEnvironmentVariable(SynapseDefaults.EnvironmentVariables.Api.Token));
     }
 
     /// <summary>
-    /// Gets/sets the base address of the Cloud Streams API to connect to
+    /// Gets/sets the base address of the Synapse API to connect to
     /// </summary>
     public virtual Uri BaseAddress { get; set; }
+
+    /// <summary>
+    /// Gets/sets the function used to create a new token to authenticate on the Synapse API
+    /// </summary>
+    public virtual Func<IServiceProvider, Task<string?>> TokenFactory { get; set; } 
 
 }

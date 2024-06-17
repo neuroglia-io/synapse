@@ -1,4 +1,4 @@
-﻿// Copyright © 2024-Present Neuroglia SRL. All rights reserved.
+﻿// Copyright © 2024-Present The Synapse Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License"),
 // you may not use this file except in compliance with the License.
@@ -41,6 +41,7 @@ public class SynapseHttpApiClient
             var api = ActivatorUtilities.CreateInstance(this.ServiceProvider, typeof(ResourceHttpApiClient<>).MakeGenericType(resourceType), this.HttpClient);
             apiProperty.SetValue(this, api);
         }
+        this.Users = ActivatorUtilities.CreateInstance<UserHttpApiClient>(this.ServiceProvider, this.HttpClient);
     }
 
     /// <summary>
@@ -74,6 +75,12 @@ public class SynapseHttpApiClient
 
     /// <inheritdoc/>
     public INamespacedResourceApiClient<Operator> Operators { get; private set; } = null!;
+
+    /// <inheritdoc/>
+    public INamespacedResourceApiClient<ServiceAccount> ServiceAccounts { get; private set; } = null!;
+
+    /// <inheritdoc/>
+    public IUserApiClient Users { get; }
 
     /// <inheritdoc/>
     public IDocumentApiClient WorkflowData { get; }

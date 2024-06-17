@@ -1,4 +1,4 @@
-﻿// Copyright © 2024-Present Neuroglia SRL. All rights reserved.
+﻿// Copyright © 2024-Present The Synapse Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License"),
 // you may not use this file except in compliance with the License.
@@ -57,7 +57,7 @@ public class NativeRuntime(ILoggerFactory loggerFactory, IHostEnvironment enviro
         if (this.Options.Runtime.Native == null) throw new NullReferenceException("The native runtime must be configured");
         var fileName = this.Options.Runtime.Native.Executable;
         var args = string.Empty;
-        //if (this.Environment.IsDevelopment()) args += "--debug";
+        if (this.Environment.IsDevelopment()) args += "--debug";
         var startInfo = new ProcessStartInfo()
         {
             FileName = fileName,

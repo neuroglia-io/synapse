@@ -1,4 +1,4 @@
-﻿// Copyright © 2024-Present Neuroglia SRL. All rights reserved.
+﻿// Copyright © 2024-Present The Synapse Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License"),
 // you may not use this file except in compliance with the License.
@@ -67,8 +67,8 @@ internal class CreateWorkflowCommand
             { 
                 Metadata = new() 
                 { 
-                    Namespace = "default", 
-                    Name = "test" 
+                    Namespace = workflowDefinition.Document.Namespace, 
+                    Name = workflowDefinition.Document.Name
                 }, 
                 Spec = new() 
                 { 

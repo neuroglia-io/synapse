@@ -1,4 +1,4 @@
-﻿// Copyright © 2024-Present Neuroglia SRL. All rights reserved.
+﻿// Copyright © 2024-Present The Synapse Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License"),
 // you may not use this file except in compliance with the License.
@@ -10,10 +10,6 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
-using Microsoft.Extensions.Options;
-using Neuroglia.Data.Expressions.Services;
-using Synapse.Api.Client.Services;
 
 namespace Synapse.Runner.Services;
 
@@ -80,7 +76,6 @@ internal class RunnerApplication(IServiceProvider serviceProvider, IHostApplicat
     {
         if(this.Executor != null)
         {
-            await this.Executor.CancelAsync(cancellationToken).ConfigureAwait(false);
             await this.Executor.DisposeAsync().ConfigureAwait(false);
             this.Executor = null;
         }

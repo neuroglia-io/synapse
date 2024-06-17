@@ -1,4 +1,4 @@
-﻿// Copyright © 2024-Present Neuroglia SRL. All rights reserved.
+﻿// Copyright © 2024-Present The Synapse Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License"),
 // you may not use this file except in compliance with the License.
@@ -10,6 +10,8 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
+using Neuroglia.Data.Infrastructure.ResourceOriented;
 
 namespace Synapse.Resources;
 
@@ -24,7 +26,7 @@ public record CorrelationSpec
     /// Gets/sets the correlation's source (user or workflow)
     /// </summary>
     [DataMember(Name = "source", Order = 1), JsonPropertyName("source"), JsonPropertyOrder(1), YamlMember(Alias = "source", Order = 1)]
-    public virtual string? Source { get; set; }
+    public virtual ResourceReference? Source { get; set; }
 
     /// <summary>
     /// Gets/sets the correlation's lifetime
