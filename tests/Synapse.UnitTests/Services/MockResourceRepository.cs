@@ -1,4 +1,4 @@
-﻿// Copyright © 2024-Present Neuroglia SRL. All rights reserved.
+﻿// Copyright © 2024-Present The Synapse Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License"),
 // you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ internal class MockResourceRepository
 
     public Task<ICollection> ListAsync(string group, string version, string plural, string? @namespace = null, IEnumerable<LabelSelector>? labelSelectors = null, ulong? maxResults = null, string? continuationToken = null, CancellationToken cancellationToken = default) => Task.FromResult((ICollection)new Collection());
 
-    public Task<IResource> PatchAsync(Patch patch, string group, string version, string plural, string name, string? @namespace = null, bool dryRun = false, CancellationToken cancellationToken = default) => Task.FromResult((IResource)new Resource(new ResourceDefinitionInfo(group, version, plural, plural)) 
+    public Task<IResource> PatchAsync(Patch patch, string group, string version, string plural, string name, string? @namespace = null, string? resourceVersion = null, bool dryRun = false, CancellationToken cancellationToken = default) => Task.FromResult((IResource)new Resource(new ResourceDefinitionInfo(group, version, plural, plural)) 
     { 
         Metadata = new() 
         {  
@@ -43,7 +43,7 @@ internal class MockResourceRepository
         }
     });
 
-    public Task<IResource> PatchSubResourceAsync(Patch patch, string group, string version, string plural, string name, string subResource, string? @namespace = null, bool dryRun = false, CancellationToken cancellationToken = default) => Task.FromResult((IResource)new Resource(new ResourceDefinitionInfo(group, version, plural, plural))
+    public Task<IResource> PatchSubResourceAsync(Patch patch, string group, string version, string plural, string name, string subResource, string? @namespace = null, string? resourceVersion = null, bool dryRun = false, CancellationToken cancellationToken = default) => Task.FromResult((IResource)new Resource(new ResourceDefinitionInfo(group, version, plural, plural))
     {
         Metadata = new()
         {

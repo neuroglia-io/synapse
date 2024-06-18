@@ -18,13 +18,15 @@ namespace Synapse.Dashboard.Components;
 /// <summary>
 /// Represents the base class for all components used to manage <see cref="IResource"/>s
 /// </summary>
-/// <typeparam name="TComponent">The type of component inheriting the <see cref="ResourceManagementComponent{TComponent, TStore, TResource}"/></typeparam>
+/// <typeparam name="TComponent">The type of component inheriting the <see cref="ResourceManagementComponent{TComponent, TStore, TState, TResource}"/></typeparam>
 /// <typeparam name="TStore">The type of <see cref="ResourceManagementComponentStoreBase{TResource}"/> to use</typeparam>
+/// <typeparam name="TState">The type of the component's state</typeparam>
 /// <typeparam name="TResource">The type of <see cref="IResource"/> to manage</typeparam>
-public abstract class ResourceManagementComponent<TComponent, TStore, TResource>
-    : StatefulComponent<TComponent, TStore, ResourceManagementComponentState<TResource>>
-    where TComponent : ResourceManagementComponent<TComponent, TStore, TResource>
-    where TStore : ResourceManagementComponentStoreBase<TResource>
+public abstract class ResourceManagementComponent<TComponent, TStore, TState, TResource>
+    : StatefulComponent<TComponent, TStore, TState>
+    where TComponent : ResourceManagementComponent<TComponent, TStore, TState, TResource>
+    where TStore : ResourceManagementComponentStoreBase<TState, TResource>
+    where TState : ResourceManagementComponentState<TResource>, new()
     where TResource : Resource, new()
 {
 
@@ -66,6 +68,11 @@ public abstract class ResourceManagementComponent<TComponent, TStore, TResource>
     protected ResourceDefinition? Definition { get; set; }
 
     /// <summary>
+    /// The search term to filter the resources with
+    /// </summary>
+    protected string? SearchTerm { get; set; }
+
+    /// <summary>
     /// A boolean value that indicates whether data is currently being gathered
     /// </summary>
     protected bool Loading { get; set; } = false;
@@ -74,8 +81,9 @@ public abstract class ResourceManagementComponent<TComponent, TStore, TResource>
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync().ConfigureAwait(false);
-        this.Store.Loading.Subscribe(loading => this.OnStateChanged(cmp => cmp.Loading = loading), token: this.CancellationTokenSource.Token);
         this.Store.Resources.Subscribe(resources => this.OnStateChanged(cmp => cmp.Resources = resources), token: this.CancellationTokenSource.Token);
+        this.Store.SearchTerm.Subscribe(searchTerm => this.OnStateChanged(cmp => cmp.SearchTerm = searchTerm), token: this.CancellationTokenSource.Token);
+        this.Store.Loading.Subscribe(loading => this.OnStateChanged(cmp => cmp.Loading = loading), token: this.CancellationTokenSource.Token);
         this.Store.Definition.SubscribeAsync(async definition =>
         {
             if (this.Definition != definition)
@@ -87,8 +95,15 @@ public abstract class ResourceManagementComponent<TComponent, TStore, TResource>
                 }
             }
         }, cancellationToken: this.CancellationTokenSource.Token);
-        await this.Store.GetResourceDefinitionAsync().ConfigureAwait(false);
-        await this.Store.ListResourcesAsync().ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Handles search input value changes
+    /// </summary>
+    /// <param name="e">the <see cref="ChangeEventArgs"/> to handle</param>
+    protected void OnSearchInput(ChangeEventArgs e)
+    {
+        this.Store.SetSearchTerm(e.Value?.ToString());
     }
 
     /// <summary>
@@ -141,5 +156,23 @@ public abstract class ResourceManagementComponent<TComponent, TStore, TResource>
         string actionType = resource == null ? "creation" : "edition";
         return this.EditorOffCanvas.ShowAsync<ResourceEditor<TResource>>(title: typeof(TResource).Name + " " + actionType, parameters: parameters);
     }
+
+}
+
+
+/// <summary>
+/// Represents the base class for all components used to manage <see cref="IResource"/>s
+/// </summary>
+/// <typeparam name="TComponent">The type of component inheriting the <see cref="ResourceManagementComponent{TComponent, TStore, TResource}"/></typeparam>
+/// <typeparam name="TStore">The type of <see cref="ResourceManagementComponentStoreBase{TResource}"/> to use</typeparam>
+/// <typeparam name="TResource">The type of <see cref="IResource"/> to manage</typeparam>
+public abstract class ResourceManagementComponent<TComponent, TStore, TResource>
+    : ResourceManagementComponent<TComponent, TStore, ResourceManagementComponentState<TResource>, TResource>
+    where TComponent : ResourceManagementComponent<TComponent, TStore, TResource>
+    where TStore : ResourceManagementComponentStoreBase<TResource>
+    where TResource : Resource, new()
+{
+
+
 
 }

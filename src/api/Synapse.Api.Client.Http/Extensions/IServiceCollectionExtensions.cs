@@ -1,4 +1,4 @@
-﻿// Copyright © 2024-Present Neuroglia SRL. All rights reserved.
+﻿// Copyright © 2024-Present The Synapse Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License"),
 // you may not use this file except in compliance with the License.
@@ -30,7 +30,8 @@ public static class IServiceCollectionExtensions
         services.Configure(setup);
         services.AddHttpClient<ISynapseApiClient, SynapseHttpApiClient>((provider, http) =>
         {
-            http.BaseAddress = provider.GetRequiredService<IOptions<SynapseHttpApiClientOptions>>().Value.BaseAddress;
+            var apiClientOptions = provider.GetRequiredService<IOptions<SynapseHttpApiClientOptions>>().Value;
+            http.BaseAddress = apiClientOptions.BaseAddress;
         });
         services.TryAddSingleton(provider =>
         {

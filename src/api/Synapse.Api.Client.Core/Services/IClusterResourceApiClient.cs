@@ -1,4 +1,4 @@
-﻿// Copyright © 2024-Present Neuroglia SRL. All rights reserved.
+﻿// Copyright © 2024-Present The Synapse Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License"),
 // you may not use this file except in compliance with the License.
@@ -33,6 +33,22 @@ public interface IClusterResourceApiClient<TResource>
     Task<IAsyncEnumerable<TResource>> ListAsync(IEnumerable<LabelSelector>? labelSelectors = null, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Watches matching resources
+    /// </summary>
+    /// <param name="labelSelectors">Defines the expected labels, if any, of the resources to watch</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/></param>
+    /// <returns>A new <see cref="IAsyncEnumerable{T}"/> used to asynchronously enumerate resulting <see cref="IResourceWatchEvent"/>s</returns>
+    Task<IAsyncEnumerable<IResourceWatchEvent<TResource>>> WatchAsync(IEnumerable<LabelSelector>? labelSelectors = null, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Monitors the resource with the specified name
+    /// </summary>
+    /// <param name="name">The name of the resource to monitor</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/></param>
+    /// <returns>A new <see cref="IAsyncEnumerable{T}"/> used to asynchronously enumerate resulting <see cref="IResourceWatchEvent"/>s</returns>
+    Task<IAsyncEnumerable<IResourceWatchEvent<TResource>>> MonitorAsync(string name, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Gets the resource with the specified name
     /// </summary>
     /// <param name="name">The name of the resource to get</param>
@@ -45,18 +61,20 @@ public interface IClusterResourceApiClient<TResource>
     /// </summary>
     /// <param name="name">The name of the resource to patch</param>
     /// <param name="patch">The patch to apply</param>
+    /// <param name="resourceVersion">The expected resource version, if any, used for optimistic concurrency</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/></param>
     /// <returns>The patched resource</returns>
-    Task<TResource> PatchAsync(string name, Patch patch, CancellationToken cancellationToken = default);
+    Task<TResource> PatchAsync(string name, Patch patch, string? resourceVersion = null, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Patches the specified resource's status
     /// </summary>
     /// <param name="name">The name of the resource to patch the status of</param>
     /// <param name="patch">The patch to apply</param>
+    /// <param name="resourceVersion">The expected resource version, if any, used for optimistic concurrency</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/></param>
     /// <returns>The patched resource</returns>
-    Task<TResource> PatchStatusAsync(string name, Patch patch, CancellationToken cancellationToken = default);
+    Task<TResource> PatchStatusAsync(string name, Patch patch, string? resourceVersion = null, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Deletes the specified resource

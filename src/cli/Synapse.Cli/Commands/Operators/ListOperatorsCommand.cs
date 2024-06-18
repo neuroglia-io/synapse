@@ -1,4 +1,4 @@
-﻿// Copyright © 2024-Present Neuroglia SRL. All rights reserved.
+﻿// Copyright © 2024-Present The Synapse Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License"),
 // you may not use this file except in compliance with the License.
@@ -11,6 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using moment.net;
 using Neuroglia.Data.Infrastructure.ResourceOriented;
 
 namespace Synapse.Cli.Commands.Operators;
@@ -74,7 +75,7 @@ internal class ListOperatorsCommand
                 @operator.GetName(),
                 @operator.GetNamespace()!,
                 (@operator.Status?.Phase ?? OperatorStatusPhase.Stopped).ToUpperInvariant(),
-                @operator.Metadata.CreationTimestamp.ToString()!
+                @operator.Metadata.CreationTimestamp?.ToOffset(DateTimeOffset.Now.Offset).DateTime.FromNow() ?? "-"
             );
         }
         if(isEmpty)

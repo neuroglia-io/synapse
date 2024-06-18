@@ -1,4 +1,4 @@
-﻿// Copyright © 2024-Present Neuroglia SRL. All rights reserved.
+﻿// Copyright © 2024-Present The Synapse Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License"),
 // you may not use this file except in compliance with the License.
@@ -16,28 +16,15 @@ namespace Synapse.Api.Client.Services;
 /// <summary>
 /// Represents the HTTP implementation of the <see cref="IResourceApiClient{TResource}"/> interface
 /// </summary>
+/// <param name="serviceProvider">The current <see cref="IServiceProvider"/></param>
 /// <param name="logger">The service used to perform logging</param>
+/// <param name="options">The service used to access the current <see cref="SynapseHttpApiClientOptions"/></param>
 /// <param name="jsonSerializer">The service used to serialize/deserialize objects to/from JSON</param>
 /// <param name="httpClient">The service used to perform HTTP requests</param>
-public class ResourceHttpApiClient<TResource>(ILogger<ResourceHttpApiClient<TResource>> logger, IJsonSerializer jsonSerializer, HttpClient httpClient)
-    : IClusterResourceApiClient<TResource>, INamespacedResourceApiClient<TResource>
+public class ResourceHttpApiClient<TResource>(IServiceProvider serviceProvider, ILogger<ResourceHttpApiClient<TResource>> logger, IOptions<SynapseHttpApiClientOptions> options, IJsonSerializer jsonSerializer, HttpClient httpClient)
+    : ApiClientBase(serviceProvider, logger, jsonSerializer, options, httpClient), IClusterResourceApiClient<TResource>, INamespacedResourceApiClient<TResource>
     where TResource : class, IResource, new()
 {
-
-    /// <summary>
-    /// Gets the service used to perform logging
-    /// </summary>
-    protected ILogger Logger { get; } = logger;
-
-    /// <summary>
-    /// Gets the service used to serialize/deserialize objects to/from JSON
-    /// </summary>
-    protected IJsonSerializer JsonSerializer { get; } = jsonSerializer;
-
-    /// <summary>
-    /// Gets the service used to perform HTTP requests
-    /// </summary>
-    protected HttpClient HttpClient { get; } = httpClient;
 
     /// <inheritdoc/>
     public virtual async Task<TResource> CreateAsync(TResource resource, CancellationToken cancellationToken = default)
@@ -93,7 +80,7 @@ public class ResourceHttpApiClient<TResource>(ILogger<ResourceHttpApiClient<TRes
         var resource = new TResource();
         var uri = string.IsNullOrWhiteSpace(@namespace) ? $"/api/{resource.Definition.Version}/{resource.Definition.Plural}" : $"/api/{resource.Definition.Version}/{resource.Definition.Plural}/{@namespace}";
         var queryStringArguments = new Dictionary<string, string>();
-        if (labelSelectors?.Any() == true) queryStringArguments.Add(nameof(labelSelectors), labelSelectors.Select(s => s.ToString()).Join(','));
+        if (labelSelectors?.Any() == true) queryStringArguments.Add("labelSelector", labelSelectors.Select(s => s.ToString()).Join(','));
         if (queryStringArguments.Count != 0) uri += $"?{queryStringArguments.Select(kvp => $"{kvp.Key}={kvp.Value}").Join('&')}";
         var request = await this.ProcessRequestAsync(new HttpRequestMessage(HttpMethod.Get, uri), cancellationToken).ConfigureAwait(false);
         var response = await this.ProcessResponseAsync(await this.HttpClient.SendAsync(request, cancellationToken).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
@@ -107,7 +94,7 @@ public class ResourceHttpApiClient<TResource>(ILogger<ResourceHttpApiClient<TRes
         var resource = new TResource();
         var uri = $"/api/{resource.Definition.Version}/{resource.Definition.Plural}";
         var queryStringArguments = new Dictionary<string, string>();
-        if (labelSelectors?.Any() == true) queryStringArguments.Add(nameof(labelSelectors), labelSelectors.Select(s => s.ToString()).Join(','));
+        if (labelSelectors?.Any() == true) queryStringArguments.Add("labelSelector", labelSelectors.Select(s => s.ToString()).Join(','));
         if (queryStringArguments.Count != 0) uri += $"?{queryStringArguments.Select(kvp => $"{kvp.Key}={kvp.Value}").Join('&')}";
         var request = await this.ProcessRequestAsync(new HttpRequestMessage(HttpMethod.Get, uri), cancellationToken).ConfigureAwait(false);
         var response = await this.ProcessResponseAsync(await this.HttpClient.SendAsync(request, cancellationToken).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
@@ -116,12 +103,66 @@ public class ResourceHttpApiClient<TResource>(ILogger<ResourceHttpApiClient<TRes
     }
 
     /// <inheritdoc/>
-    public virtual async Task<TResource> PatchAsync(string name, Patch patch, CancellationToken cancellationToken = default)
+    public virtual async Task<IAsyncEnumerable<IResourceWatchEvent<TResource>>> WatchAsync(string? @namespace = null, IEnumerable<LabelSelector>? labelSelectors = null, CancellationToken cancellationToken = default)
+    {
+        var resource = new TResource();
+        var uri = string.IsNullOrWhiteSpace(@namespace) ? $"/api/{resource.Definition.Version}/{resource.Definition.Plural}/watch" : $"/api/{resource.Definition.Version}/{resource.Definition.Plural}/{@namespace}/watch";
+        var queryStringArguments = new Dictionary<string, string>();
+        if (labelSelectors?.Any() == true) queryStringArguments.Add("labelSelector", labelSelectors.Select(s => s.ToString()).Join(','));
+        if (queryStringArguments.Count != 0) uri += $"?{queryStringArguments.Select(kvp => $"{kvp.Key}={kvp.Value}").Join('&')}";
+        var request = await this.ProcessRequestAsync(new HttpRequestMessage(HttpMethod.Get, uri), cancellationToken).ConfigureAwait(false);
+        var response = await this.ProcessResponseAsync(await this.HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
+        var responseStream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+        return this.JsonSerializer.DeserializeAsyncEnumerable<ResourceWatchEvent<TResource>>(responseStream, cancellationToken)!;
+    }
+
+    /// <inheritdoc/>
+    public virtual async Task<IAsyncEnumerable<IResourceWatchEvent<TResource>>> WatchAsync(IEnumerable<LabelSelector>? labelSelectors = null, CancellationToken cancellationToken = default)
+    {
+        var resource = new TResource();
+        var uri = $"/api/{resource.Definition.Version}/{resource.Definition.Plural}/watch";
+        var queryStringArguments = new Dictionary<string, string>();
+        if (labelSelectors?.Any() == true) queryStringArguments.Add("labelSelector", labelSelectors.Select(s => s.ToString()).Join(','));
+        if (queryStringArguments.Count != 0) uri += $"?{queryStringArguments.Select(kvp => $"{kvp.Key}={kvp.Value}").Join('&')}";
+        var request = await this.ProcessRequestAsync(new HttpRequestMessage(HttpMethod.Get, uri), cancellationToken).ConfigureAwait(false);
+        var response = await this.ProcessResponseAsync(await this.HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
+        var responseStream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+        return this.JsonSerializer.DeserializeAsyncEnumerable<ResourceWatchEvent<TResource>>(responseStream, cancellationToken)!;
+    }
+
+    /// <inheritdoc/>
+    public virtual async Task<IAsyncEnumerable<IResourceWatchEvent<TResource>>> MonitorAsync(string name, string @namespace, CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
+        ArgumentException.ThrowIfNullOrWhiteSpace(@namespace);
+        var resource = new TResource();
+        var uri = $"/api/{resource.Definition.Version}/{resource.Definition.Plural}/{@namespace}/{name}/monitor";
+        using var request = await this.ProcessRequestAsync(new HttpRequestMessage(HttpMethod.Get, uri), cancellationToken).ConfigureAwait(false);
+        var response = await this.ProcessResponseAsync(await this.HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
+        var responseStream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+        return this.JsonSerializer.DeserializeAsyncEnumerable<ResourceWatchEvent<TResource>>(responseStream, cancellationToken)!;
+    }
+
+    /// <inheritdoc/>
+    public virtual async Task<IAsyncEnumerable<IResourceWatchEvent<TResource>>> MonitorAsync(string name, CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
+        var resource = new TResource();
+        var uri = $"/api/{resource.Definition.Version}/{resource.Definition.Plural}/{name}/monitor";
+        using var request = await this.ProcessRequestAsync(new HttpRequestMessage(HttpMethod.Get, uri), cancellationToken).ConfigureAwait(false);
+        using var response = await this.ProcessResponseAsync(await this.HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
+        var responseStream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+        return this.JsonSerializer.DeserializeAsyncEnumerable<ResourceWatchEvent<TResource>>(responseStream, cancellationToken)!;
+    }
+
+    /// <inheritdoc/>
+    public virtual async Task<TResource> PatchAsync(string name, Patch patch, string? resourceVersion = null, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         ArgumentNullException.ThrowIfNull(patch);
         var resource = new TResource();
         var uri = $"/api/{resource.Definition.Version}/{resource.Definition.Plural}/{name}";
+        if (!string.IsNullOrWhiteSpace(resourceVersion)) uri += $"?resourceVersion={resourceVersion}";
         var json = this.JsonSerializer.SerializeToText(patch);
         using var content = new StringContent(json, Encoding.UTF8, MediaTypeNames.Application.Json);
         using var request = await this.ProcessRequestAsync(new HttpRequestMessage(HttpMethod.Patch, uri) { Content = content }, cancellationToken).ConfigureAwait(false);
@@ -131,13 +172,14 @@ public class ResourceHttpApiClient<TResource>(ILogger<ResourceHttpApiClient<TRes
     }
 
     /// <inheritdoc/>
-    public virtual async Task<TResource> PatchAsync(string name, string @namespace, Patch patch, CancellationToken cancellationToken = default)
+    public virtual async Task<TResource> PatchAsync(string name, string @namespace, Patch patch, string? resourceVersion = null, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         ArgumentException.ThrowIfNullOrWhiteSpace(@namespace);
         ArgumentNullException.ThrowIfNull(patch);
         var resource = new TResource();
         var uri = $"/api/{resource.Definition.Version}/{resource.Definition.Plural}/{@namespace}/{name}";
+        if (!string.IsNullOrWhiteSpace(resourceVersion)) uri += $"?resourceVersion={resourceVersion}";
         var json = this.JsonSerializer.SerializeToText(patch);
         using var content = new StringContent(json, Encoding.UTF8, MediaTypeNames.Application.Json);
         using var request = await this.ProcessRequestAsync(new HttpRequestMessage(HttpMethod.Patch, uri) { Content = content }, cancellationToken).ConfigureAwait(false);
@@ -147,12 +189,13 @@ public class ResourceHttpApiClient<TResource>(ILogger<ResourceHttpApiClient<TRes
     }
 
     /// <inheritdoc/>
-    public virtual async Task<TResource> PatchStatusAsync(string name, Patch patch, CancellationToken cancellationToken = default)
+    public virtual async Task<TResource> PatchStatusAsync(string name, Patch patch, string? resourceVersion = null, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         ArgumentNullException.ThrowIfNull(patch);
         var resource = new TResource();
         var uri = $"/api/{resource.Definition.Version}/{resource.Definition.Plural}/{name}/status";
+        if (!string.IsNullOrWhiteSpace(resourceVersion)) uri += $"?resourceVersion={resourceVersion}";
         var json = this.JsonSerializer.SerializeToText(patch);
         using var content = new StringContent(json, Encoding.UTF8, MediaTypeNames.Application.Json);
         using var request = await this.ProcessRequestAsync(new HttpRequestMessage(HttpMethod.Patch, uri) { Content = content }, cancellationToken).ConfigureAwait(false);
@@ -162,13 +205,14 @@ public class ResourceHttpApiClient<TResource>(ILogger<ResourceHttpApiClient<TRes
     }
 
     /// <inheritdoc/>
-    public virtual async Task<TResource> PatchStatusAsync(string name, string @namespace, Patch patch, CancellationToken cancellationToken = default)
+    public virtual async Task<TResource> PatchStatusAsync(string name, string @namespace, Patch patch, string? resourceVersion = null, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         ArgumentException.ThrowIfNullOrWhiteSpace(@namespace);
         ArgumentNullException.ThrowIfNull(patch);
         var resource = new TResource();
         var uri = $"/api/{resource.Definition.Version}/{resource.Definition.Plural}/{@namespace}/{name}/status";
+        if (!string.IsNullOrWhiteSpace(resourceVersion)) uri += $"?resourceVersion={resourceVersion}";
         var json = this.JsonSerializer.SerializeToText(patch);
         using var content = new StringContent(json, Encoding.UTF8, MediaTypeNames.Application.Json);
         using var request = await this.ProcessRequestAsync(new HttpRequestMessage(HttpMethod.Patch, uri) { Content = content }, cancellationToken).ConfigureAwait(false);
@@ -222,39 +266,6 @@ public class ResourceHttpApiClient<TResource>(ILogger<ResourceHttpApiClient<TRes
         var uri = $"/api/{resource.Definition.Version}/{resource.Definition.Plural}/{@namespace}/{name}";
         using var request = await this.ProcessRequestAsync(new HttpRequestMessage(HttpMethod.Delete, uri), cancellationToken).ConfigureAwait(false);
         await this.ProcessResponseAsync(await this.HttpClient.SendAsync(request, cancellationToken).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
-    }
-
-    /// <summary>
-    /// Processes the specified <see cref="HttpRequestMessage"/> before sending it
-    /// </summary>
-    /// <param name="request">the <see cref="HttpRequestMessage"/> to process</param>
-    /// <param name="cancellationToken">A <see cref="CancellationToken"/></param>
-    /// <returns>The processed <see cref="HttpRequestMessage"/></returns>
-    protected virtual Task<HttpRequestMessage> ProcessRequestAsync(HttpRequestMessage request, CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(request);
-        return Task.FromResult(request);
-    }
-
-    /// <summary>
-    /// Processes the specified <see cref="HttpResponseMessage"/>
-    /// </summary>
-    /// <param name="response">the <see cref="HttpResponseMessage"/> to process</param>
-    /// <param name="cancellationToken">A <see cref="CancellationToken"/></param>
-    /// <returns>The processed <see cref="HttpResponseMessage"/></returns>
-    protected virtual async Task<HttpResponseMessage> ProcessResponseAsync(HttpResponseMessage response, CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(response);
-        if (response.IsSuccessStatusCode) return response;
-        var content = string.Empty;
-        if (response.Content != null) content = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
-        this.Logger.LogError("The remote server responded with a non-success status code '{statusCode}': {errorDetails}", response.StatusCode, content);
-        if (!response.IsSuccessStatusCode)
-        {
-            if (string.IsNullOrWhiteSpace(content)) response.EnsureSuccessStatusCode();
-            else throw new ProblemDetailsException(this.JsonSerializer.Deserialize<ProblemDetails>(content)!);
-        }
-        return response;
     }
 
 }

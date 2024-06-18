@@ -1,4 +1,4 @@
-﻿// Copyright © 2024-Present Neuroglia SRL. All rights reserved.
+﻿// Copyright © 2024-Present The Synapse Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License"),
 // you may not use this file except in compliance with the License.
@@ -44,7 +44,7 @@ internal class DeleteCorrelationCommand
     /// Handles the <see cref="DeleteCorrelationCommand"/>
     /// </summary>
     /// <param name="name">The name of the correlation to delete</param>
-    /// <param name="namespace">The namespace of the workflow to delete</param>
+    /// <param name="namespace">The namespace of the correlation to delete</param>
     /// <param name="y">A boolean indicating whether or not to ask for the user's confirmation</param>
     /// <returns>A new awaitable <see cref="Task"/></returns>
     public async Task HandleAsync(string name, string @namespace, bool y)

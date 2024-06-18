@@ -1,4 +1,4 @@
-﻿// Copyright © 2024-Present Neuroglia SRL. All rights reserved.
+﻿// Copyright © 2024-Present The Synapse Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License"),
 // you may not use this file except in compliance with the License.
@@ -13,9 +13,6 @@
 
 using Neuroglia.Data.Expressions;
 using Neuroglia.Data.Infrastructure.ResourceOriented;
-using System.Diagnostics;
-using System.Net;
-using System.Reactive.Subjects;
 
 namespace Synapse.Runner.Services;
 

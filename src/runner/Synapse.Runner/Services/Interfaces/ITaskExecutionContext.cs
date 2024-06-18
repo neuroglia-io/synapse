@@ -1,4 +1,4 @@
-﻿// Copyright © 2024-Present Neuroglia SRL. All rights reserved.
+﻿// Copyright © 2024-Present The Synapse Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License"),
 // you may not use this file except in compliance with the License.
@@ -67,6 +67,13 @@ public interface ITaskExecutionContext
     /// <param name="cancellationToken">A <see cref="CancellationToken"/></param>
     /// <returns>A new awaitable <see cref="Task"/></returns>
     Task ExecuteAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Begins correlating events
+    /// </summary>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/></param>
+    /// <returns>The resulting <see cref="CorrelationContext"/></returns>
+    Task<CorrelationContext> CorrelateAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Suspends the <see cref="TaskInstance"/>
